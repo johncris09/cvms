@@ -29,13 +29,6 @@ import {
 } from 'firebase/database'
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDc_0aSfmZpDdhoiLXj49OG_fdogNZ5CFY',
-  authDomain: 'city-vet-monitoring-system.firebaseapp.com',
-  projectId: 'city-vet-monitoring-system',
-  storageBucket: 'city-vet-monitoring-system.appspot.com',
-  messagingSenderId: '1087102826401',
-  appId: '1:1087102826401:web:85ec0adf6b6dbf487cbde0',
-  measurementId: 'G-YVQ6HCQE71',
 }
 // Initialize Firebase app
 const app = initializeApp(firebaseConfig)
