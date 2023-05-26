@@ -36,7 +36,7 @@ const AppHeader = () => {
         <CHeaderNav className="d-none d-md-flex me-auto">
           <CNavItem>
             <CNavLink to="/dashboard" component={NavLink}>
-              City Veterinarian Office Monitoring System
+              Oroquieta City Veterinarian Office Monitoring System
             </CNavLink>
           </CNavItem>
           {/* <CNavItem>

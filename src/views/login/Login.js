@@ -108,7 +108,7 @@ const Login = () => {
                   </div>
                   <CForm>
                     <h3 className="text-center">
-                      City Veterinarian Office
+                      Oroquieta City Veterinarian Office
                       <br /> Monitoring System
                     </h3>
                     <p className="text-medium-emphasis text-center">Sign In to your account</p>
