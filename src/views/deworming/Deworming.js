@@ -104,7 +104,7 @@ const Deworming = () => {
 
             let sexText =
               (item.female != 0 ? item.female + ' F' : '') +
-              (item.female > 0 && item.female > 0 ? ' and ' : '') +
+              (item.female > 0 && item.male > 0 ? ' and ' : '') +
               (item.male != 0 ? item.male + ' M' : '')
 
             return {
