@@ -1,7 +1,16 @@
 import React from 'react'
-import { cilAnimal, cilDog, cilEyedropper, cilSpeedometer, cilTablet, cilUser } from '@coreui/icons'
+import {
+  cilAnimal,
+  cilBook,
+  cilChart,
+  cilDog,
+  cilEyedropper,
+  cilSpeedometer,
+  cilTablet,
+  cilUser,
+} from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
-import { CNavItem } from '@coreui/react'
+import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
 const _nav = [
   {
@@ -27,6 +36,34 @@ const _nav = [
     name: 'Deworming',
     to: '/deworming',
     icon: <CIcon icon={cilAnimal} customClassName="nav-icon" />,
+  },
+
+  {
+    component: CNavGroup,
+    name: 'Report',
+    to: '/report',
+    icon: <CIcon icon={cilChart} customClassName="nav-icon" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Pet Owner',
+        to: '/report/pet_owner',
+      },
+      {
+        component: CNavItem,
+        name: 'Anti-Rabies Vaccination',
+        to: '/report/anti_rabies',
+      },
+      {
+        component: CNavItem,
+        name: 'Deworming',
+        to: '/report/deworming',
+      },
+    ],
+  },
+  {
+    component: CNavTitle,
+    name: 'Utilities',
   },
   {
     component: CNavItem,
