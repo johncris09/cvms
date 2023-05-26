@@ -62,7 +62,6 @@ const Pet_owner = () => {
   })
   const [selectedItemId, setSelectedItemId] = useState(null)
   useEffect(() => {
-    // fetchData()
     fetchBarangay()
     fetchControlNumber(_table)
 
@@ -74,7 +73,7 @@ const Pet_owner = () => {
       control_number: controlNumber,
     }))
 
-    fetchSeniorHighData(_table, currentYear)
+    fetchData(_table, currentYear)
   }, [controlNumber])
 
   const fetchControlNumber = async (_table) => {
@@ -141,21 +140,7 @@ const Pet_owner = () => {
     }
   }
 
-  // const fetchData = () => {
-  //   const databaseRef = ref(database, _table)
-
-  //   onValue(databaseRef, (snapshot) => {
-  //     const firebaseData = snapshot.val()
-  //     const transformedData = Object.entries(firebaseData || {}).map(([key, item]) => ({
-  //       id: key,
-  //       ...item,
-  //     }))
-
-  //     setData(transformedData)
-  //   })
-  // }
-
-  const fetchSeniorHighData = async (table, currentYear) => {
+  const fetchData = async (table, currentYear) => {
     try {
       const seniorHighRef = ref(database, table)
       const seniorHighQuery = query(seniorHighRef, orderByChild('control_number'))
@@ -168,7 +153,6 @@ const Pet_owner = () => {
           const filteredData = seniorHighArray.filter((item) => {
             const date = new Date(item.timestamp)
             const year = date.getFullYear()
-            const currentYear = new Date().getFullYear()
             return year === currentYear
           })
           // // Sort the filtered data by spNo
@@ -203,7 +187,7 @@ const Pet_owner = () => {
               sex: item.sex,
               size: item.size,
               address: item.address,
-              created_at: _date + '' + _time,
+              created_at: _date + ' ' + _time,
             }
           })
 
