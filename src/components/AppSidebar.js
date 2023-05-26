@@ -48,14 +48,10 @@ const AppSidebar = () => {
         dispatch({ type: 'set', sidebarShow: visible })
       }}
     >
-      <CSidebarBrand className="d-none d-md-flex" to="/">
+      <CSidebarBrand className="d-md-flex" to="/">
         <div className="clearfix">
-          <CImage align="center" className="m-2" rounded src={logo} width={70} height={70} />
+          <CImage align="center" className="m-2" rounded src={logo} width={120} height={120} />
         </div>
-        <p>
-          <span className="h6 text-warning">City Vet</span>
-          <br /> Monitoring System{' '}
-        </p>
         <CIcon className="sidebar-brand-narrow" icon={sygnet} height={35} />
       </CSidebarBrand>
       <CSidebarNav>

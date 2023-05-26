@@ -226,7 +226,7 @@ const Dashboard = () => {
           },
         ],
       }
-      console.info(_dewormingData)
+
       setDewormingData(_dewormingData)
     } catch (error) {
       console.error('Error fetching pet owner data:', error)
@@ -257,7 +257,7 @@ const Dashboard = () => {
                     </h4>
                   </CCol>
                 </CRow>
-                <CChartBar data={petOwnerData} height={200} labels="pet_owner" />
+                <CChartBar height={150} data={petOwnerData} labels="pet_owner" />
               </CCardBody>
             </CCard>
           </CCol>
@@ -270,7 +270,7 @@ const Dashboard = () => {
                       Anti-Rabies
                     </h4>
                   </CCol>
-                  <CCol xs={7} className="d-none d-md-block">
+                  <CCol xs={7} className="d-md-block">
                     <CForm className="float-end">
                       <CFormSelect size="sm" name="species" onChange={handleAntiRabiesChange}>
                         <option disabled>Choose...</option>
@@ -280,7 +280,7 @@ const Dashboard = () => {
                     </CForm>
                   </CCol>
                 </CRow>
-                <CChartBar data={antiRabiesData} height={200} labels="anti_tabies" />
+                <CChartBar data={antiRabiesData} height={150} labels="anti_tabies" />
               </CCardBody>
             </CCard>
           </CCol>
@@ -293,7 +293,7 @@ const Dashboard = () => {
                       Deworming
                     </h4>
                   </CCol>
-                  <CCol xs={7} className="d-none d-md-block">
+                  <CCol xs={7} className="d-md-block">
                     <CForm className="float-end">
                       <CFormSelect size="sm" name="species" onChange={handleDewormChange}>
                         <option disabled>Choose...</option>
@@ -304,7 +304,7 @@ const Dashboard = () => {
                     </CForm>
                   </CCol>
                 </CRow>
-                <CChartBar data={dewormingData} height={200} labels="anti_tabies" />
+                <CChartBar data={dewormingData} height={150} labels="anti_tabies" />
               </CCardBody>
             </CCard>
           </CCol>
