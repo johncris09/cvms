@@ -52,7 +52,7 @@ const Deworming = () => {
     address: '',
     farmer_name: '',
     species: '',
-    head_number: '',
+    head_number: '9',
     treatment_and_amount: '',
     female: '',
     male: '',
@@ -496,7 +496,6 @@ const Deworming = () => {
             <CCol md={5}>
               <CFormInput
                 type="number"
-                min="1"
                 feedbackInvalid="Number of Heads is required"
                 id="head-number"
                 label={
@@ -539,18 +538,10 @@ const Deworming = () => {
                 min="1"
                 feedbackInvalid="Number of Female is required"
                 id="female-number"
-                label={
-                  <>
-                    Number of Female
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
+                label="Number of Female"
                 name="female"
                 value={formData.female}
                 onChange={handleChange}
-                required
               />
             </CCol>
             <CCol md={6}>
@@ -559,18 +550,10 @@ const Deworming = () => {
                 min="1"
                 feedbackInvalid="Number of Male is required"
                 id="male-number"
-                label={
-                  <>
-                    Number of Male
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
+                label="Number of Male"
                 name="male"
                 value={formData.male}
                 onChange={handleChange}
-                required
               />
             </CCol>
             <hr />
