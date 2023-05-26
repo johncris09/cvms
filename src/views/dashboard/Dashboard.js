@@ -47,12 +47,15 @@ const Dashboard = () => {
   const [email, setEmail] = useState(null)
   const [barangayOptions, setBarangayOptions] = useState([])
   const [petOwnerData, setPetOwnerData] = useState([])
-  const [selectedSpecies, setSelectedSpecies] = useState('C')
+  const [selectedSpeciesAntiRabies, setSelectedSpeciesAntiRabies] = useState('C')
   const [antiRabiesData, setAntiRabiesData] = useState([])
+  const [selectedSpeciesDeworming, setSelectedSpeciesDeworming] = useState('Carabao')
+  const [dewormingData, setDewormingData] = useState([])
   useEffect(() => {
     fetchPetOwnerData()
 
-    fetchAntiRabiesData(selectedSpecies)
+    fetchAntiRabiesData(selectedSpeciesAntiRabies)
+    fetchDewormingData(selectedSpeciesDeworming)
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setEmail(user.email)
@@ -124,7 +127,7 @@ const Dashboard = () => {
     }
   }
 
-  const fetchAntiRabiesData = async (_species = 'C') => {
+  const fetchAntiRabiesData = async (_species) => {
     try {
       const barangayRef = ref(database, 'barangay')
       const barangaySnapshot = await get(barangayRef)
@@ -177,16 +180,74 @@ const Dashboard = () => {
     }
   }
 
+  const fetchDewormingData = async (_species) => {
+    try {
+      const barangayRef = ref(database, 'barangay')
+      const barangaySnapshot = await get(barangayRef)
+      const barangays = Object.values(barangaySnapshot.val()).map((barangay) => barangay.barangay)
+
+      const dewormingRef = ref(database, 'deworming')
+      const dewormingSnapshot = await get(dewormingRef)
+      const deworming = Object.values(dewormingSnapshot.val())
+
+      const maleCounts = []
+      const femaleCounts = []
+      const currentYear = new Date().getFullYear()
+      // Loop through each deworming
+      for (const deworm of deworming) {
+        const { address, female, male, timestamp, species } = deworm
+        if (currentYear == new Date(timestamp).getFullYear()) {
+          if (species === _species) {
+            // Find the corresponding barangay for the current deworming
+            const index = barangays.indexOf(address)
+            if (index !== -1) {
+              const femaleCount = parseInt(female) || 0
+              const maleCount = parseInt(male) || 0
+
+              femaleCounts[index] = (femaleCounts[index] || 0) + femaleCount
+              maleCounts[index] = (maleCounts[index] || 0) + maleCount
+            }
+          }
+        }
+      }
+
+      const _dewormingData = {
+        labels: barangays,
+        datasets: [
+          {
+            label: 'Male',
+            backgroundColor: '#f87979',
+            data: maleCounts,
+          },
+          {
+            label: 'Female',
+            backgroundColor: '#799ff8',
+            data: femaleCounts,
+          },
+        ],
+      }
+      console.info(_dewormingData)
+      setDewormingData(_dewormingData)
+    } catch (error) {
+      console.error('Error fetching pet owner data:', error)
+    }
+  }
+
   const handleAntiRabiesChange = (e) => {
     const { value } = e.target
-    setSelectedSpecies(value)
+    setSelectedSpeciesAntiRabies(value)
+  }
+
+  const handleDewormChange = (e) => {
+    const { value } = e.target
+    setSelectedSpeciesDeworming(value)
   }
 
   return (
     <>
       {status === 'Approved' ? (
         <CRow>
-          <CCol md={6}>
+          <CCol md={12}>
             <CCard className="mb-4">
               <CCardBody>
                 <CRow>
@@ -200,7 +261,7 @@ const Dashboard = () => {
               </CCardBody>
             </CCard>
           </CCol>
-          <CCol md={6}>
+          <CCol md={12}>
             <CCard className="mb-4">
               <CCardBody>
                 <CRow>
@@ -220,6 +281,30 @@ const Dashboard = () => {
                   </CCol>
                 </CRow>
                 <CChartBar data={antiRabiesData} height={200} labels="anti_tabies" />
+              </CCardBody>
+            </CCard>
+          </CCol>
+          <CCol md={12}>
+            <CCard className="mb-4">
+              <CCardBody>
+                <CRow>
+                  <CCol xs={5}>
+                    <h4 id="deworming" className="card-title mb-0">
+                      Deworming
+                    </h4>
+                  </CCol>
+                  <CCol xs={7} className="d-none d-md-block">
+                    <CForm className="float-end">
+                      <CFormSelect size="sm" name="species" onChange={handleDewormChange}>
+                        <option disabled>Choose...</option>
+                        <option value="Carabao">Carabao</option>
+                        <option value="Chicken">Chicken</option>
+                        <option value="Cow">Cow</option>
+                      </CFormSelect>
+                    </CForm>
+                  </CCol>
+                </CRow>
+                <CChartBar data={dewormingData} height={200} labels="anti_tabies" />
               </CCardBody>
             </CCard>
           </CCol>
