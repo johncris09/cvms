@@ -35,6 +35,7 @@ import {
 import { DeleteOutline, EditSharp } from '@mui/icons-material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons'
+import ConvertToTitleCase from './../../helper/ConvertToTitleCase'
 import Table from 'src/constant/Table'
 const MySwal = withReactContent(Swal)
 
@@ -53,6 +54,7 @@ const Pet_owner = () => {
   const [formData, setFormData] = useState({
     control_number: '',
     or_number: '',
+    date: '',
     owner_name: '',
     pet_name: '',
     color: '',
@@ -179,6 +181,7 @@ const Pet_owner = () => {
               item.control_number.toString().padStart(5, '0')
             return {
               id: item.id,
+              date: item.date,
               control_number: _controlNumber,
               or_number: item.or_number,
               owner_name: item.owner_name,
@@ -233,6 +236,7 @@ const Pet_owner = () => {
       event.preventDefault()
       const formData = new FormData(form)
       const control_number = formData.get('control_number')
+      const date = formData.get('date')
       const or_number = formData.get('or_number')
       const owner_name = formData.get('owner_name')
       const pet_name = formData.get('pet_name')
@@ -246,6 +250,7 @@ const Pet_owner = () => {
         const itemRef = ref(database, `${_table}/${selectedItemId}`)
         update(itemRef, {
           control_number,
+          date,
           or_number,
           owner_name,
           pet_name,
@@ -271,6 +276,7 @@ const Pet_owner = () => {
         set(newItemRef, {
           id,
           control_number,
+          date,
           or_number,
           owner_name,
           pet_name,
@@ -300,8 +306,13 @@ const Pet_owner = () => {
 
   const handleChange = (e) => {
     const { name, value, type } = e.target
+    let updatedValue = value
 
-    setFormData({ ...formData, [name]: value })
+    // Convert text inputs to title case
+    if (type === 'text') {
+      updatedValue = ConvertToTitleCase(value)
+    }
+    setFormData({ ...formData, [name]: updatedValue })
   }
 
   const columns = useMemo(
@@ -340,6 +351,10 @@ const Pet_owner = () => {
           {
             accessorKey: 'address',
             header: 'Address',
+          },
+          {
+            accessorKey: 'date',
+            header: 'Date',
           },
           {
             accessorKey: 'created_at',
@@ -500,11 +515,11 @@ const Pet_owner = () => {
                 required
               />
             </CCol>
-            <CCol md={12}>
+            <CCol md={6}>
               <CFormInput
                 type="text"
                 feedbackInvalid="OR # is required"
-                id="owner-number"
+                id="or-number"
                 label={
                   <>
                     OR #
@@ -515,6 +530,25 @@ const Pet_owner = () => {
                 }
                 name="or_number"
                 value={formData.or_number}
+                onChange={handleChange}
+                required
+              />
+            </CCol>
+            <CCol md={6}>
+              <CFormInput
+                type="date"
+                feedbackInvalid="OR # is required"
+                id="date"
+                label={
+                  <>
+                    Date
+                    <span className="text-warning">
+                      <strong>*</strong>
+                    </span>
+                  </>
+                }
+                name="date"
+                value={formData.date}
                 onChange={handleChange}
                 required
               />
@@ -537,6 +571,31 @@ const Pet_owner = () => {
                 onChange={handleChange}
                 required
               />
+            </CCol>
+            <CCol md={12}>
+              <CFormSelect
+                feedbackInvalid="Address is required"
+                id="address"
+                label={
+                  <>
+                    Address
+                    <span className="text-warning">
+                      <strong>*</strong>
+                    </span>
+                  </>
+                }
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Choose...</option>
+                {barangayOptions.map((barangay) => (
+                  <option key={barangay.barangay} value={barangay.barangay}>
+                    {barangay.barangay}
+                  </option>
+                ))}
+              </CFormSelect>
             </CCol>
             <CCol md={12}>
               <CFormInput
@@ -619,31 +678,6 @@ const Pet_owner = () => {
                 <option value="Small">Small</option>
                 <option value="Medium">Medium</option>
                 <option value="Large">Large</option>
-              </CFormSelect>
-            </CCol>
-            <CCol md={12}>
-              <CFormSelect
-                feedbackInvalid="Address is required"
-                id="address"
-                label={
-                  <>
-                    Address
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Choose...</option>
-                {barangayOptions.map((barangay) => (
-                  <option key={barangay.barangay} value={barangay.barangay}>
-                    {barangay.barangay}
-                  </option>
-                ))}
               </CFormSelect>
             </CCol>
             <hr />
