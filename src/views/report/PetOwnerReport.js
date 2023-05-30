@@ -7,20 +7,22 @@ import {
   CCol,
   CForm,
   CFormInput,
+  CFormSelect,
   CRow,
 } from '@coreui/react'
 
-import { database, ref, query, orderByChild, onValue } from '../../firebaseConfig'
+import { database, ref, query, orderByChild, onValue, get } from '../../firebaseConfig'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 
 import { OroquietaCityLogo, cityVetLogo } from 'src/helper/LogoReport'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilePdf } from '@fortawesome/free-solid-svg-icons'
+import ConvertToTitleCase from 'src/helper/ConvertToTitleCase'
 pdfMake.vfs = pdfFonts.pdfMake.vfs
 const PetOwnerReport = () => {
   const [currentYear, setCurrentYear] = useState()
-
+  const [barangayOptions, setBarangayOptions] = useState([])
   const [data, setData] = useState([])
   const _table = 'pet_owner'
 
@@ -28,9 +30,11 @@ const PetOwnerReport = () => {
   const [formData, setFormData] = useState({
     start_date: '',
     end_date: '',
+    address: '',
   })
 
   useEffect(() => {
+    fetchBarangay()
     const currentYear = new Date().getFullYear() // Get the current year
     setCurrentYear(currentYear)
   }, [])
@@ -39,6 +43,19 @@ const PetOwnerReport = () => {
     const { name, value, type } = e.target
 
     setFormData({ ...formData, [name]: value })
+  }
+
+  const fetchBarangay = async () => {
+    try {
+      const databaseRef = ref(database, 'barangay')
+      const snapshot = await get(databaseRef)
+      if (snapshot.exists()) {
+        const barangays = Object.values(snapshot.val())
+        setBarangayOptions(barangays)
+      }
+    } catch (error) {
+      console.error('Error fetching barangay data:', error)
+    }
   }
 
   const formatDate = (dateString) => {
@@ -57,12 +74,14 @@ const PetOwnerReport = () => {
       const formData = new FormData(form)
       const start_date = formData.get('start_date')
       const end_date = formData.get('end_date')
-      generateReport(_table, 2023, start_date, end_date)
+      const address = formData.get('address')
+      // console.info({ start_date, end_date, address })
+      generateReport(_table, 2023, start_date, end_date, address)
     }
     setValidated(true)
   }
 
-  const generateReport = async (table, currentYear, start_date, end_date) => {
+  const generateReport = async (table, currentYear, start_date, end_date, addressFilter) => {
     try {
       const petOwnerRef = ref(database, table)
       const petOwnerQuery = query(petOwnerRef, orderByChild('control_number'))
@@ -78,7 +97,16 @@ const PetOwnerReport = () => {
             const startDate = new Date(start_date)
             const endDate = new Date(end_date)
 
-            return date >= startDate && date <= endDate && year === currentYear
+            if (addressFilter === '') {
+              return date >= startDate && date <= endDate && year === currentYear
+            } else {
+              return (
+                date >= startDate &&
+                date <= endDate &&
+                year === currentYear &&
+                addressFilter === item.address
+              )
+            }
           })
           // // Sort the filtered data by date
           filteredData.sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -109,7 +137,7 @@ const PetOwnerReport = () => {
               or_number: item.or_number,
               owner_name: item.owner_name,
               pet_name: item.pet_name,
-              color: item.color,
+              color: ConvertToTitleCase(item.color),
               sex: item.sex,
               size: item.size,
               address: item.address,
@@ -186,9 +214,40 @@ const PetOwnerReport = () => {
                 text: '\n\n', // Add some spacing between the header and the table
               },
               {
-                text: formatDate(formData.start_date) + ' - ' + formatDate(formData.end_date),
-                style: 'subheaderText',
-                alignment: 'right',
+                columns: [
+                  {
+                    width: 'auto',
+                    text: 'Barangay: ' + (formData.address ? formData.address : 'All'),
+                    text: [
+                      'Barangay: ',
+                      {
+                        text: formData.address ? formData.address : 'All',
+                        bold: true,
+                        decoration: 'underline',
+                      },
+                    ],
+                    fit: [50, 50],
+                  },
+                  {
+                    text: [' '],
+                    style: 'headerText',
+                    bold: false,
+                    alignment: 'center',
+                  },
+                  {
+                    text: [
+                      'Date: ',
+                      {
+                        text:
+                          formatDate(formData.start_date) + ' - ' + formatDate(formData.end_date),
+                        bold: true,
+                        decoration: 'underline',
+                      },
+                    ],
+                    fit: [50, 50],
+                    alignment: 'right',
+                  },
+                ],
               },
               {
                 style: 'tableDesign',
@@ -267,6 +326,23 @@ const PetOwnerReport = () => {
                   onChange={handleChange}
                   required
                 />
+              </CCol>
+
+              <CCol md={12}>
+                <CFormSelect
+                  id="address"
+                  label="Address'"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                >
+                  <option value="">Choose...</option>
+                  {barangayOptions.map((barangay) => (
+                    <option key={barangay.barangay} value={barangay.barangay}>
+                      {barangay.barangay}
+                    </option>
+                  ))}
+                </CFormSelect>
               </CCol>
               <hr />
               <CCol xs={12}>
