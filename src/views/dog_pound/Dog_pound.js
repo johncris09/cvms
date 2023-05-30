@@ -35,7 +35,7 @@ import {
 import { DeleteOutline, EditSharp } from '@mui/icons-material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons'
-import ConvertToTitleCase from './../../helper/ConvertToTitleCase'
+import ConvertToTitleCase from '../../helper/ConvertToTitleCase'
 import Table from 'src/constant/Table'
 const MySwal = withReactContent(Swal)
 
@@ -371,7 +371,7 @@ const Pet_owner = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <strong>Pet Owner</strong>
+            <strong>Dog Pound</strong>
             <CButton color="primary" className="float-end" onClick={handleAdd}>
               <FontAwesomeIcon icon={faPlusCircle} /> Add New Data
             </CButton>
@@ -395,29 +395,27 @@ const Pet_owner = () => {
                     onClick={async () => {
                       closeMenu()
 
-                      const petOwnersRef = ref(database, _table)
-                      const petOwnerSnapshot = await get(child(petOwnersRef, row.original.id))
+                      const dogPoundsRef = ref(database, _table)
+                      const dogPoundSnapshot = await get(child(dogPoundsRef, row.original.id))
 
-                      if (petOwnerSnapshot.exists()) {
-                        // Pet owner data found
-                        const petOwnerData = petOwnerSnapshot.val()
-                        console.info(petOwnerData)
-
+                      if (dogPoundSnapshot.exists()) {
+                        // Dog Pound data found
+                        const dogPoundData = dogPoundSnapshot.val()
                         setFormData({
-                          control_number: petOwnerData.control_number,
-                          or_number: petOwnerData.or_number,
-                          owner_name: petOwnerData.owner_name,
-                          pet_name: petOwnerData.pet_name,
-                          color: petOwnerData.color,
-                          sex: petOwnerData.sex,
-                          size: petOwnerData.size,
-                          address: petOwnerData.address,
+                          control_number: dogPoundData.control_number,
+                          or_number: dogPoundData.or_number,
+                          owner_name: dogPoundData.owner_name,
+                          pet_name: dogPoundData.pet_name,
+                          color: dogPoundData.color,
+                          sex: dogPoundData.sex,
+                          size: dogPoundData.size,
+                          address: dogPoundData.address,
                         })
 
                         let _controlNumber =
-                          new Date(petOwnerData.timestamp).getFullYear() +
+                          new Date(dogPoundData.timestamp).getFullYear() +
                           '-' +
-                          petOwnerData.control_number.toString().padStart(5, '0')
+                          dogPoundData.control_number.toString().padStart(5, '0')
                         setControlNumberDisplay(_controlNumber)
 
                         setSelectedItemId(row.original.id) // Set the selected item ID

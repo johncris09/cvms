@@ -46,8 +46,8 @@ import { TimeScale } from 'chart.js'
 const Dashboard = () => {
   const [status, setStatus] = useState(null)
   const [email, setEmail] = useState(null)
-  const [petOwnerData, setPetOwnerData] = useState([])
-  const [petOwnerTotalData, setPetOwnerTotalData] = useState([])
+  const [dogPoundData, setDogPoundData] = useState([])
+  const [dogPoundTotalData, setDogPoundTotalData] = useState([])
   const [selectedSpeciesAntiRabies, setSelectedSpeciesAntiRabies] = useState('C')
   const [antiRabiesData, setAntiRabiesData] = useState([])
   const [antiRabiesTotalData, setAntiRabiesTotalData] = useState([])
@@ -77,7 +77,7 @@ const Dashboard = () => {
     })
 
     return () => unsubscribe()
-  }, [petOwnerData])
+  }, [dogPoundData])
   const fetchPetOwnerData = async () => {
     try {
       const barangayRef = ref(database, 'barangay')
@@ -93,11 +93,11 @@ const Dashboard = () => {
       let totalMaleCount = 0
       let totalFemaleCount = 0
       const currentYear = new Date().getFullYear()
-      // Loop through each pet owner
+      // Loop through each dog pound
       for (const petOwner of petOwners) {
         const { address, sex, timestamp } = petOwner
         if (currentYear == new Date(timestamp).getFullYear()) {
-          // Find the corresponding barangay for the current pet owner
+          // Find the corresponding barangay for the current dog pound
           const index = barangays.indexOf(address)
           if (index !== -1) {
             if (sex === 'Male') {
@@ -111,7 +111,7 @@ const Dashboard = () => {
         }
       }
 
-      const petOwnerData = {
+      const dogPoundData = {
         labels: barangays,
         datasets: [
           {
@@ -127,13 +127,13 @@ const Dashboard = () => {
         ],
       }
 
-      setPetOwnerData(petOwnerData)
-      setPetOwnerTotalData({
+      setDogPoundData(dogPoundData)
+      setDogPoundTotalData({
         male: totalMaleCount.toLocaleString(),
         female: totalFemaleCount.toLocaleString(),
       })
     } catch (error) {
-      console.error('Error fetching pet owner data:', error)
+      console.error('Error fetching dog owner data:', error)
     }
   }
 
@@ -194,7 +194,7 @@ const Dashboard = () => {
         female: totalFemaleCount.toLocaleString(),
       })
     } catch (error) {
-      console.error('Error fetching pet owner data:', error)
+      console.error('Error fetching anti rabies data:', error)
     }
   }
 
@@ -256,7 +256,7 @@ const Dashboard = () => {
         female: totalFemaleCount.toLocaleString(),
       })
     } catch (error) {
-      console.error('Error fetching pet owner data:', error)
+      console.error('Error fetching deworming data:', error)
     }
   }
 
@@ -279,16 +279,16 @@ const Dashboard = () => {
               <CCardBody>
                 <CRow>
                   <CCol md={12}>
-                    <h4 id="pet-owner" className="card-title mb-0">
-                      Pet
+                    <h4 id="dog-pound" className="card-title mb-0">
+                      Dog Pound
                     </h4>
                     <div className="small text-medium-emphasis">
-                      <strong>Male:</strong> {petOwnerTotalData.male} <br />
-                      <strong>Female:</strong> {petOwnerTotalData.female}
+                      <strong>Male:</strong> {dogPoundTotalData.male} <br />
+                      <strong>Female:</strong> {dogPoundTotalData.female}
                     </div>
                   </CCol>
                 </CRow>
-                <CChartBar height={150} data={petOwnerData} labels="pet_owner" />
+                <CChartBar height={150} data={dogPoundData} labels="pet_owner" />
               </CCardBody>
             </CCard>
           </CCol>
