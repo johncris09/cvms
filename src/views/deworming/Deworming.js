@@ -119,7 +119,6 @@ const Deworming = () => {
               treatment_and_amount: item.treatment_and_amount,
             }
           })
-          console.info(processedData)
 
           setData(processedData)
         } else {
@@ -290,7 +289,7 @@ const Deworming = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <strong>Anti Rabies Vaccination</strong>
+            <strong>Deworming</strong>
             <CButton color="primary" className="float-end" onClick={handleAdd}>
               <FontAwesomeIcon icon={faPlusCircle} /> Add New Data
             </CButton>
