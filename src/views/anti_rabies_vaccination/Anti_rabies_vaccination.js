@@ -128,11 +128,10 @@ const Anti_rabies_vaccination = () => {
               birthdate: item.pet_birthdate,
               neutered: item.neutered,
               species: item.species,
-              vaccination_date: item.date_vaccinated,
+              vaccination_date: item.vaccination_date,
               vaccine_type: item.vaccine_type,
             }
           })
-          // console.info(processedData)
 
           setData(processedData)
         } else {
