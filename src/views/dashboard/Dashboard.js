@@ -116,19 +116,22 @@ const Dashboard = () => {
         datasets: [
           {
             label: 'Male',
-            backgroundColor: '#f87979',
+            backgroundColor: '#799ff8',
             data: maleCounts,
           },
           {
             label: 'Female',
-            backgroundColor: '#799ff8',
+            backgroundColor: '#f87979',
             data: femaleCounts,
           },
         ],
       }
 
       setPetOwnerData(petOwnerData)
-      setPetOwnerTotalData({ male: totalMaleCount, female: totalFemaleCount })
+      setPetOwnerTotalData({
+        male: totalMaleCount.toLocaleString(),
+        female: totalFemaleCount.toLocaleString(),
+      })
     } catch (error) {
       console.error('Error fetching pet owner data:', error)
     }
@@ -174,19 +177,22 @@ const Dashboard = () => {
         datasets: [
           {
             label: 'Male',
-            backgroundColor: '#f87979',
+            backgroundColor: '#799ff8',
             data: maleCounts,
           },
           {
             label: 'Female',
-            backgroundColor: '#799ff8',
+            backgroundColor: '#f87979',
             data: femaleCounts,
           },
         ],
       }
 
       setAntiRabiesData(_antiRabiesData)
-      setAntiRabiesTotalData({ male: totalMaleCount, female: totalFemaleCount })
+      setAntiRabiesTotalData({
+        male: totalMaleCount.toLocaleString(),
+        female: totalFemaleCount.toLocaleString(),
+      })
     } catch (error) {
       console.error('Error fetching pet owner data:', error)
     }
@@ -233,19 +239,22 @@ const Dashboard = () => {
         datasets: [
           {
             label: 'Male',
-            backgroundColor: '#f87979',
+            backgroundColor: '#799ff8',
             data: maleCounts,
           },
           {
             label: 'Female',
-            backgroundColor: '#799ff8',
+            backgroundColor: '#f87979',
             data: femaleCounts,
           },
         ],
       }
 
       setDewormingData(_dewormingData)
-      setDewormingTotalData({ male: totalMaleCount, female: totalFemaleCount })
+      setDewormingTotalData({
+        male: totalMaleCount.toLocaleString(),
+        female: totalFemaleCount.toLocaleString(),
+      })
     } catch (error) {
       console.error('Error fetching pet owner data:', error)
     }
