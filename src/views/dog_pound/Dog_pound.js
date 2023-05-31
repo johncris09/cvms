@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import MaterialReactTable from 'material-react-table'
+import { ExportToCsv } from 'export-to-csv'
 import {
   CButton,
   CCard,
@@ -15,7 +16,7 @@ import {
   CFormInput,
   CFormSelect,
 } from '@coreui/react'
-import { MenuItem, ListItemIcon } from '@mui/material'
+import { MenuItem, ListItemIcon, Box } from '@mui/material'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import {
@@ -33,24 +34,28 @@ import {
   remove,
 } from '../../firebaseConfig'
 import { DeleteOutline, EditSharp } from '@mui/icons-material'
+import { OroquietaCityLogo, cityVetLogo } from 'src/helper/LogoReport'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlusCircle } from '@fortawesome/free-solid-svg-icons'
+import { faFileExcel, faFilePdf, faPlusCircle } from '@fortawesome/free-solid-svg-icons'
 import ConvertToTitleCase from '../../helper/ConvertToTitleCase'
+
+import pdfMake from 'pdfmake/build/pdfmake'
+import pdfFonts from 'pdfmake/build/vfs_fonts'
+
 import Table from 'src/constant/Table'
 const MySwal = withReactContent(Swal)
 
+pdfMake.vfs = pdfFonts.pdfMake.vfs
 const Pet_owner = () => {
-  const _table = 'pet_owner'
-
-  const timestamp = serverTimestamp()
+  const _table = 'dog_pound'
   const [data, setData] = useState([])
-  const [visible, setVisible] = useState(false)
+  const [newDadtaFormModalVisible, setNewDataFormModalVisible] = useState(false)
+  const [reportFormModalVisible, setReportFormModalVisible] = useState(false)
   const [validated, setValidated] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [barangayOptions, setBarangayOptions] = useState([])
   const [currentYear, setCurrentYear] = useState()
-  const [controlNumber, setControlNumber] = useState()
-  const [controlNumberDisplay, setControlNumberDisplay] = useState()
+  const [selectedItemId, setSelectedItemId] = useState(null)
   const [formData, setFormData] = useState({
     control_number: '',
     or_number: '',
@@ -62,104 +67,43 @@ const Pet_owner = () => {
     size: '',
     address: '',
   })
-  const [selectedItemId, setSelectedItemId] = useState(null)
+  const [formReportData, setFormReportData] = useState({
+    start_date: '',
+    end_date: '',
+    address: '',
+  })
   useEffect(() => {
     fetchBarangay()
-    fetchControlNumber(_table)
 
     const currentYear = new Date().getFullYear() // Get the current year
     setCurrentYear(currentYear)
 
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      control_number: controlNumber,
-    }))
-
     fetchData(_table, currentYear)
-  }, [controlNumber])
+  }, [])
 
-  const fetchControlNumber = async (_table) => {
-    try {
-      const dataRef = query(ref(database, _table), orderByChild('control_number'))
-
-      onValue(dataRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const data = []
-          snapshot.forEach((childSnapshot) => {
-            const childData = childSnapshot.val()
-            data.push(childData)
-          })
-
-          // Filter the data based on the desired year
-          const filteredData = data.filter((item) => {
-            const date = new Date(item.timestamp)
-            const year = date.getFullYear()
-            return year === currentYear
-          })
-
-          const maxControlNumber = filteredData.reduce((max, item) => {
-            return item.control_number > max ? item.control_number : max
-          }, 0)
-
-          const parsedMaxControlNumhber = parseInt(maxControlNumber, 10)
-          const nextControlNumhber = isNaN(parsedMaxControlNumhber)
-            ? 1
-            : parsedMaxControlNumhber + 1
-          setControlNumber(nextControlNumhber)
-        } else {
-          setControlNumber(1)
-        }
-      })
-
-      // Fetch the initial data
-      const snapshot = await get(dataRef)
-      if (snapshot.exists()) {
-        const data = []
-        snapshot.forEach((childSnapshot) => {
-          const childData = childSnapshot.val()
-          data.push(childData)
-        })
-
-        // Filter the data based on the desired year
-        const filteredData = data.filter((item) => {
-          const date = new Date(item.timestamp)
-          const year = date.getFullYear()
-          return year === currentYear
-        })
-
-        const maxControlNumber = filteredData.reduce((max, item) => {
-          return item.control_number > max ? item.control_number : max
-        }, 0)
-
-        const parsedMaxControlNumhber = parseInt(maxControlNumber, 10)
-        const nextControlNumhber = isNaN(parsedMaxControlNumhber) ? 1 : parsedMaxControlNumhber + 1
-        setControlNumber(nextControlNumhber)
-      } else {
-        setControlNumber(1)
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    }
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    const options = { month: 'long', day: 'numeric', year: 'numeric' }
+    return date.toLocaleDateString('en-US', options)
   }
 
   const fetchData = async (table, currentYear) => {
     try {
-      const seniorHighRef = ref(database, table)
-      const seniorHighQuery = query(seniorHighRef, orderByChild('control_number'))
+      const dogPoundRef = ref(database, table)
+      const dogPoundQuery = query(dogPoundRef, orderByChild('date'))
 
-      onValue(seniorHighQuery, (snapshot) => {
+      onValue(dogPoundQuery, (snapshot) => {
         if (snapshot.exists()) {
-          const seniorHighData = snapshot.val()
-          const seniorHighArray = Object.values(seniorHighData)
-          // Filter the data based on the desired year and semester
-          const filteredData = seniorHighArray.filter((item) => {
+          const dogPoundData = snapshot.val()
+          const dogPoundArray = Object.values(dogPoundData)
+
+          const filteredData = dogPoundArray.filter((item) => {
             const date = new Date(item.timestamp)
             const year = date.getFullYear()
             return year === currentYear
           })
-          // // Sort the filtered data by spNo
-          filteredData.sort((a, b) => b.control_number - a.control_number)
-          // // Process the relationships with other tables (course, address, school)
+          // Sort the filtered data by date
+          filteredData.sort((a, b) => new Date(b.date) - new Date(a.date))
           const processedData = filteredData.map((item) => {
             const date = new Date(item.timestamp)
             const formattedDate = date.toLocaleDateString('en-US', {
@@ -173,16 +117,11 @@ const Pet_owner = () => {
               minute: '2-digit',
               second: '2-digit',
             })
-            const _date = formattedDate == 'Invalid Date' ? '' : formattedDate
-            const _time = formattedTime == 'Invalid Date' ? '' : formattedTime
-            let _controlNumber =
-              new Date(item.timestamp).getFullYear() +
-              '-' +
-              item.control_number.toString().padStart(5, '0')
+            const _date = formattedDate == '' ? '' : formattedDate
+            const _time = formattedTime == '' ? '' : formattedTime
             return {
               id: item.id,
               date: item.date,
-              control_number: _controlNumber,
               or_number: item.or_number,
               owner_name: item.owner_name,
               pet_name: item.pet_name,
@@ -218,13 +157,248 @@ const Pet_owner = () => {
   }
 
   const handleAdd = () => {
-    setFormData({
-      control_number: controlNumber,
-    })
     setEditMode(false)
-    setVisible(true)
+    setNewDataFormModalVisible(true)
     setValidated(false)
     setSelectedItemId(null)
+  }
+  const handleReport = () => {
+    setReportFormModalVisible(true)
+  }
+
+  const handleReportSubmit = (event) => {
+    const form = event.currentTarget
+    if (form.checkValidity() === false) {
+      event.preventDefault()
+      event.stopPropagation()
+    } else {
+      event.preventDefault()
+      const formData = new FormData(form)
+      const start_date = formData.get('start_date')
+      const end_date = formData.get('end_date')
+      const address = formData.get('address')
+      // console.info({ start_date, end_date, address })
+      generateReport(_table, 2023, start_date, end_date, address)
+      setValidated(false)
+    }
+    setValidated(true)
+  }
+
+  const generateReport = async (table, currentYear, start_date, end_date, addressFilter) => {
+    try {
+      const petOwnerRef = ref(database, table)
+      const petOwnerQuery = query(petOwnerRef, orderByChild('date'))
+
+      onValue(petOwnerQuery, (snapshot) => {
+        if (snapshot.exists()) {
+          const petOwnerData = snapshot.val()
+          const petOwnerArray = Object.values(petOwnerData)
+          // Filter the data based on the desired year and semester
+          const filteredData = petOwnerArray.filter((item) => {
+            const date = new Date(item.date)
+            const year = date.getFullYear()
+            const startDate = new Date(start_date)
+            const endDate = new Date(end_date)
+
+            if (addressFilter === '') {
+              return date >= startDate && date <= endDate && year === currentYear
+            } else {
+              return (
+                date >= startDate &&
+                date <= endDate &&
+                year === currentYear &&
+                addressFilter === item.address
+              )
+            }
+          })
+          // Sort the filtered data by date
+          filteredData.sort((a, b) => new Date(b.date) - new Date(a.date))
+
+          const processedData = filteredData.map((item) => {
+            return {
+              id: item.id,
+              date: item.date,
+              or_number: item.or_number,
+              owner_name: item.owner_name,
+              pet_name: item.pet_name,
+              color: ConvertToTitleCase(item.color),
+              sex: item.sex,
+              size: item.size,
+              address: item.address,
+            }
+          })
+
+          if (processedData.length > 0) {
+            const content = []
+            // Add table header
+            const tableHeader = [
+              { text: 'Date', style: 'tableHeader', bold: true },
+              { text: 'OR Number', style: 'tableHeader', bold: true },
+              { text: 'Owner Name', style: 'tableHeader', bold: true },
+              { text: 'Pet Name', style: 'tableHeader', bold: true },
+              { text: 'Color', style: 'tableHeader', bold: true },
+              { text: 'Sex', style: 'tableHeader', bold: true },
+              { text: 'Size', style: 'tableHeader', bold: true },
+              { text: 'Address', style: 'tableHeader', bold: true },
+            ]
+            content.push(tableHeader)
+            // Add table rows
+            for (const item of processedData) {
+              const tableRow = [
+                item.date,
+                item.or_number,
+                item.owner_name,
+                item.pet_name,
+                item.color,
+                item.sex,
+                item.size,
+                item.address,
+              ]
+              content.push(tableRow)
+            }
+            const currentDateTime = new Date().toLocaleString('en-US')
+            const documentDefinition = {
+              background: [
+                {
+                  text: 'Sample Print',
+                  color: 'gray',
+                  opacity: 0.5,
+                  fontSize: 60,
+                  bold: true,
+                  italics: true,
+                  rotation: 135,
+                  alignment: 'center',
+                  margin: [0, 200],
+                },
+              ],
+              footer: function (currentPage, pageCount) {
+                return {
+                  columns: [
+                    {
+                      text: `Date Printed: ${currentDateTime}`,
+                      alignment: 'left',
+                      fontSize: 8,
+                      margin: [20, 0],
+                    },
+                    {
+                      text: `Page ${currentPage} of ${pageCount}`,
+                      alignment: 'right',
+                      fontSize: 8,
+                      margin: [0, 0, 20, 0],
+                    },
+                  ],
+                  margin: [20, 10],
+                }
+              },
+              content: [
+                {
+                  columns: [
+                    {
+                      width: 'auto',
+                      image: cityVetLogo,
+                      fit: [50, 50],
+                    },
+                    {
+                      text: [
+                        'Republic of the Philippines\n',
+                        'OFFICE OF THE VETERINARIAN\n',
+                        'Oroquieta City\n\n',
+                        {
+                          text: 'City of Good Life',
+                          style: 'subheaderText',
+                          alignment: 'center',
+                          italics: true,
+                          bold: true,
+                        },
+                      ],
+                      style: 'headerText',
+                      bold: false,
+                      alignment: 'center',
+                    },
+                    {
+                      width: 'auto',
+                      image: OroquietaCityLogo,
+                      fit: [50, 50],
+                      alignment: 'right',
+                    },
+                  ],
+                },
+                {
+                  text: '\n\n', // Add some spacing between the header and the table
+                },
+                {
+                  columns: [
+                    {
+                      width: 'auto',
+                      text:
+                        'Barangay: ' + (formReportData.address ? formReportData.address : 'All'),
+                      text: [
+                        'Barangay: ',
+                        {
+                          text: formReportData.address ? formReportData.address : 'All',
+                          bold: true,
+                          decoration: 'underline',
+                        },
+                      ],
+                      fit: [200, 200],
+                    },
+                    {
+                      text: [' '],
+                      style: 'headerText',
+                      bold: false,
+                      alignment: 'center',
+                    },
+                    {
+                      text: [
+                        'Date: ',
+                        {
+                          text:
+                            formatDate(formReportData.start_date) +
+                            ' - ' +
+                            formatDate(formReportData.end_date),
+                          bold: true,
+                          decoration: 'underline',
+                        },
+                      ],
+                      fit: [200, 200],
+                      alignment: 'right',
+                    },
+                  ],
+                },
+                {
+                  style: 'tableDesign',
+                  table: {
+                    body: content,
+                  },
+                  alignment: 'center',
+                },
+              ],
+              styles: {
+                tableDesign: {
+                  margin: [0, 5, 0, 15],
+                  fontSize: 10,
+                },
+                footer: {
+                  fontSize: 8,
+                },
+              },
+            }
+            const pdfDoc = pdfMake.createPdf(documentDefinition)
+            pdfDoc.open()
+          } else {
+            MySwal.fire({
+              title: <strong>No record found</strong>,
+              html: <i>There are no records matching your search criteria.</i>,
+              icon: 'info',
+            })
+          }
+        } else {
+          setData({})
+        }
+      })
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    }
   }
 
   const handleSubmit = (event) => {
@@ -298,7 +472,7 @@ const Pet_owner = () => {
           })
       }
       setValidated(false)
-      setVisible(false)
+      setNewDataFormModalVisible(false)
     }
     // form.reset()
     setValidated(true)
@@ -315,56 +489,68 @@ const Pet_owner = () => {
     setFormData({ ...formData, [name]: updatedValue })
   }
 
+  const handleReportChange = (e) => {
+    const { name, value } = e.target
+    setFormReportData({ ...formReportData, [name]: value })
+  }
+
   const columns = useMemo(
     () => [
       {
-        id: 'pet_owner',
-        columns: [
-          {
-            accessorKey: 'control_number',
-            header: 'Control #',
-          },
-          {
-            accessorKey: 'or_number',
-            header: 'Or #',
-          },
-          {
-            accessorKey: 'owner_name',
-            header: 'Owner Name',
-          },
-          {
-            accessorKey: 'pet_name',
-            header: 'Pet Name',
-          },
-          {
-            accessorKey: 'color',
-            header: 'Color',
-          },
-          {
-            accessorKey: 'sex',
-            header: 'Sex',
-          },
-          {
-            accessorKey: 'size',
-            header: 'Size',
-          },
-          {
-            accessorKey: 'address',
-            header: 'Address',
-          },
-          {
-            accessorKey: 'date',
-            header: 'Date',
-          },
-          {
-            accessorKey: 'created_at',
-            header: 'Created At',
-          },
-        ],
+        accessorKey: 'date',
+        header: 'Date',
+      },
+      {
+        accessorKey: 'or_number',
+        header: 'Or #',
+      },
+      {
+        accessorKey: 'owner_name',
+        header: 'Owner Name',
+      },
+      {
+        accessorKey: 'pet_name',
+        header: 'Pet Name',
+      },
+      {
+        accessorKey: 'color',
+        header: 'Color',
+      },
+      {
+        accessorKey: 'sex',
+        header: 'Sex',
+      },
+      {
+        accessorKey: 'size',
+        header: 'Size',
+      },
+      {
+        accessorKey: 'address',
+        header: 'Address',
+      },
+      {
+        accessorKey: 'created_at',
+        header: 'Created At',
       },
     ],
     [],
   )
+
+  const csvOptions = {
+    fieldSeparator: ',',
+    quoteStrings: '"',
+    decimalSeparator: '.',
+    showLabels: true,
+    useBom: true,
+    useKeysAsHeaders: false,
+    headers: columns.map((c) => c.header),
+  }
+
+  const csvExporter = new ExportToCsv(csvOptions)
+
+  const handleExportData = () => {
+    csvExporter.generateCsv(data)
+  }
 
   return (
     <CRow>
@@ -372,7 +558,15 @@ const Pet_owner = () => {
         <CCard className="mb-4">
           <CCardHeader>
             <strong>Dog Pound</strong>
-            <CButton color="primary" className="float-end" onClick={handleAdd}>
+            <CButton color="success" variant="outline" className="float-end" onClick={handleReport}>
+              <FontAwesomeIcon icon={faFilePdf} /> Generate Report
+            </CButton>
+            <CButton
+              color="primary"
+              variant="outline"
+              className="float-end mx-1"
+              onClick={handleAdd}
+            >
               <FontAwesomeIcon icon={faPlusCircle} /> Add New Data
             </CButton>
           </CCardHeader>
@@ -402,8 +596,8 @@ const Pet_owner = () => {
                         // Dog Pound data found
                         const dogPoundData = dogPoundSnapshot.val()
                         setFormData({
-                          control_number: dogPoundData.control_number,
                           or_number: dogPoundData.or_number,
+                          date: dogPoundData.date,
                           owner_name: dogPoundData.owner_name,
                           pet_name: dogPoundData.pet_name,
                           color: dogPoundData.color,
@@ -412,14 +606,8 @@ const Pet_owner = () => {
                           address: dogPoundData.address,
                         })
 
-                        let _controlNumber =
-                          new Date(dogPoundData.timestamp).getFullYear() +
-                          '-' +
-                          dogPoundData.control_number.toString().padStart(5, '0')
-                        setControlNumberDisplay(_controlNumber)
-
                         setSelectedItemId(row.original.id) // Set the selected item ID
-                        setVisible(true)
+                        setNewDataFormModalVisible(true)
                         setEditMode(true)
                       } else {
                         // Pet owner data not found
@@ -461,16 +649,24 @@ const Pet_owner = () => {
                     Delete
                   </MenuItem>,
                 ]}
+                renderTopToolbarCustomActions={({ table }) => (
+                  <Box sx={{ display: 'flex', gap: '1rem', p: '0.5rem', flexWrap: 'wrap' }}>
+                    <CButton size="sm" className="btn-info text-white" onClick={handleExportData}>
+                      <FontAwesomeIcon icon={faFileExcel} /> Export to Excel
+                    </CButton>
+                  </Box>
+                )}
               />
             </>
           </CCardBody>
         </CCard>
       </CCol>
 
+      {/* Add New Data */}
       <CModal
         alignment="center"
-        visible={visible}
-        onClose={() => setVisible(false)}
+        visible={newDadtaFormModalVisible}
+        onClose={() => setNewDataFormModalVisible(false)}
         backdrop="static"
         keyboard={false}
         size="lg"
@@ -491,28 +687,6 @@ const Pet_owner = () => {
             validated={validated}
             onSubmit={handleSubmit}
           >
-            <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-              <h3 className="text-danger text-right">
-                <u>
-                  {editMode
-                    ? controlNumberDisplay
-                    : currentYear && controlNumber
-                    ? currentYear.toString() + '-' + controlNumber.toString().padStart(5, '0')
-                    : ''}
-                </u>
-              </h3>
-            </div>
-            <CCol md={12}>
-              <CFormInput
-                type="hidden"
-                feedbackInvalid="Control # is required"
-                id="owner-number"
-                name="control_number"
-                value={formData.control_number}
-                onChange={handleChange}
-                required
-              />
-            </CCol>
             <CCol md={6}>
               <CFormInput
                 type="text"
@@ -535,7 +709,7 @@ const Pet_owner = () => {
             <CCol md={6}>
               <CFormInput
                 type="date"
-                feedbackInvalid="OR # is required"
+                feedbackInvalid="Date is required"
                 id="date"
                 label={
                   <>
@@ -682,6 +856,97 @@ const Pet_owner = () => {
             <CCol xs={12}>
               <CButton color="primary" type="submit" className="float-end">
                 {editMode ? 'Update' : 'Submit form'}
+              </CButton>
+            </CCol>
+          </CForm>
+        </CModalBody>
+      </CModal>
+
+      {/* Report */}
+      <CModal
+        alignment="center"
+        visible={reportFormModalVisible}
+        onClose={() => setReportFormModalVisible(false)}
+        backdrop="static"
+        keyboard={false}
+        size="lg"
+      >
+        <CModalHeader>
+          <CModalTitle>Generate Report</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <p className="text-small-emphasis">
+            Note:{' '}
+            <strong>
+              <span className="text-danger">*</span> is required
+            </strong>
+          </p>
+          <CForm
+            className="row g-3 needs-validation"
+            noValidate
+            validated={validated}
+            onSubmit={handleReportSubmit}
+          >
+            <CCol md={6}>
+              <CFormInput
+                type="date"
+                feedbackInvalid="Start Date is required"
+                id="start-date"
+                label={
+                  <>
+                    Start Date
+                    <span className="text-warning">
+                      <strong>*</strong>
+                    </span>
+                  </>
+                }
+                name="start_date"
+                value={formReportData.start_date}
+                onChange={handleReportChange}
+                required
+              />
+            </CCol>
+            <CCol md={6}>
+              <CFormInput
+                type="date"
+                feedbackInvalid="End Date is required"
+                id="end-date"
+                label={
+                  <>
+                    End Date
+                    <span className="text-warning">
+                      <strong>*</strong>
+                    </span>
+                  </>
+                }
+                name="end_date"
+                value={formReportData.end_date}
+                onChange={handleReportChange}
+                required
+              />
+            </CCol>
+
+            <CCol md={12}>
+              <CFormSelect
+                id="address"
+                label="Address"
+                name="address"
+                value={formReportData.address}
+                onChange={handleReportChange}
+              >
+                <option value="">Choose...</option>
+                {barangayOptions.map((barangay) => (
+                  <option key={barangay.barangay} value={barangay.barangay}>
+                    {barangay.barangay}
+                  </option>
+                ))}
+              </CFormSelect>
+            </CCol>
+
+            <hr />
+            <CCol xs={12}>
+              <CButton color="primary" type="submit" className="float-end">
+                Generate
               </CButton>
             </CCol>
           </CForm>
