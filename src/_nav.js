@@ -5,6 +5,7 @@ import {
   cilChart,
   cilDog,
   cilEyedropper,
+  cilListRich,
   cilSpeedometer,
   cilTablet,
   cilUser,
@@ -21,8 +22,8 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Pet Owner',
-    to: '/pet_owner',
+    name: 'Dog Pound',
+    to: '/dog_pound',
     icon: <CIcon icon={cilDog} customClassName="nav-icon" />,
   },
   {
@@ -64,6 +65,25 @@ const _nav = [
   {
     component: CNavTitle,
     name: 'Utilities',
+  },
+
+  {
+    component: CNavGroup,
+    name: 'Species',
+    to: '/species',
+    icon: <CIcon icon={cilListRich} customClassName="nav-icon" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Anti Rabies',
+        to: '/species/anti_rabies',
+      },
+      {
+        component: CNavItem,
+        name: 'Deworm',
+        to: '/species/deworming',
+      },
+    ],
   },
   {
     component: CNavItem,
