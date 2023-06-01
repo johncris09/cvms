@@ -204,7 +204,7 @@ const DewormSpecies = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <strong>Anti Rabies Species</strong>
+            <strong>Deworming Species</strong>
             <CButton
               color="primary"
               variant="outline"
