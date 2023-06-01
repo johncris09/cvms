@@ -16,7 +16,7 @@ import {
   CFormInput,
   CFormSelect,
 } from '@coreui/react'
-import { MenuItem, ListItemIcon, Box } from '@mui/material'
+import { MenuItem, ListItemIcon, Box, darken } from '@mui/material'
 import { OroquietaCityLogo, cityVetLogo } from 'src/helper/LogoReport'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
@@ -69,8 +69,8 @@ const Anti_rabies_vaccination = () => {
     neutered: '',
   })
   const [formReportData, setFormReportData] = useState({
-    start_date: '2023-05-01',
-    end_date: '2023-05-31',
+    start_date: '',
+    end_date: '',
     address: '',
     species: '',
   })
@@ -433,6 +433,16 @@ const Anti_rabies_vaccination = () => {
                     ],
                   },
                   {
+                    columns: [
+                      {
+                        text: 'ANTI-RABIES VACCINATION\n',
+                        style: 'headerText',
+                        bold: true,
+                        alignment: 'center',
+                      },
+                    ],
+                  },
+                  {
                     text: '\n\n', // Add some spacing between the header and the table
                   },
                   {
@@ -694,6 +704,20 @@ const Anti_rabies_vaccination = () => {
               <MaterialReactTable
                 columns={columns}
                 data={data}
+                muiTablePaperProps={{
+                  elevation: 0,
+                  sx: {
+                    borderRadius: '0',
+                    border: '1px dashed #e0e0e0',
+                  },
+                }}
+                muiTableBodyProps={{
+                  sx: (theme) => ({
+                    '& tr:nth-of-type(odd)': {
+                      backgroundColor: darken(theme.palette.background.default, 0.05),
+                    },
+                  }),
+                }}
                 enableColumnFilterModes
                 enableColumnOrdering
                 enableGrouping

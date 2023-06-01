@@ -16,7 +16,7 @@ import {
   CFormInput,
   CFormSelect,
 } from '@coreui/react'
-import { MenuItem, ListItemIcon, Box } from '@mui/material'
+import { MenuItem, ListItemIcon, Box, darken } from '@mui/material'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import {
@@ -575,6 +575,20 @@ const Pet_owner = () => {
               <MaterialReactTable
                 columns={columns}
                 data={data}
+                muiTablePaperProps={{
+                  elevation: 0,
+                  sx: {
+                    borderRadius: '0',
+                    border: '1px dashed #e0e0e0',
+                  },
+                }}
+                muiTableBodyProps={{
+                  sx: (theme) => ({
+                    '& tr:nth-of-type(odd)': {
+                      backgroundColor: darken(theme.palette.background.default, 0.05),
+                    },
+                  }),
+                }}
                 enableColumnFilterModes
                 enableColumnOrdering
                 enableGrouping
