@@ -41,7 +41,6 @@ import Table from 'src/constant/Table'
 import ConvertToTitleCase from 'src/helper/ConvertToTitleCase'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
-import { prettyFormat } from '@testing-library/react'
 pdfMake.vfs = pdfFonts.pdfMake.vfs
 const MySwal = withReactContent(Swal)
 
@@ -1068,7 +1067,7 @@ const Anti_rabies_vaccination = () => {
             <CCol md={6}>
               <CFormInput
                 type="date"
-                feedbackInvalid="OR # is required"
+                feedbackInvalid="Start Date is required"
                 id="start-date"
                 label={
                   <>
@@ -1087,7 +1086,7 @@ const Anti_rabies_vaccination = () => {
             <CCol md={6}>
               <CFormInput
                 type="date"
-                feedbackInvalid="OR # is required"
+                feedbackInvalid="End Date is required"
                 id="end-date"
                 label={
                   <>
@@ -1107,7 +1106,14 @@ const Anti_rabies_vaccination = () => {
               <CFormSelect
                 id="address"
                 feedbackInvalid="Address is required"
-                label="Address"
+                label={
+                  <>
+                    Address
+                    <span className="text-warning">
+                      <strong>*</strong>
+                    </span>
+                  </>
+                }
                 name="address"
                 value={formReportData.address}
                 onChange={handleReportChange}
@@ -1125,14 +1131,7 @@ const Anti_rabies_vaccination = () => {
               <CFormSelect
                 feedbackInvalid="Species is required"
                 id="species"
-                label={
-                  <>
-                    Species
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
+                label="Species"
                 name="species"
                 value={formReportData.species}
                 onChange={handleReportChange}
