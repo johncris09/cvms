@@ -1,5 +1,7 @@
 import React from 'react'
 import {
+  cibDocker,
+  cibFoursquare,
   cilAnimal,
   cilBook,
   cilChart,
@@ -84,6 +86,12 @@ const _nav = [
         to: '/species/deworming',
       },
     ],
+  },
+  {
+    component: CNavItem,
+    name: 'Medication',
+    to: '/medication',
+    icon: <CIcon icon={cibFoursquare} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,

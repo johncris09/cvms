@@ -15,6 +15,7 @@ const AntiRabiesVaccinationReport = React.lazy(() =>
 const DewormingReport = React.lazy(() => import('./views/report/DewormingReport'))
 const AntiRabiesSpecies = React.lazy(() => import('./views/species/AntiRabiesSpecies'))
 const DewormSpecies = React.lazy(() => import('./views/species/DewormSpecies'))
+const Medication = React.lazy(() => import('./views/medication/Medication'))
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
@@ -25,7 +26,7 @@ const routes = [
     element: Anti_rabies_vaccination,
   },
   { path: '/deworming', name: 'Deworming', element: Deworming },
-  { path: '/user', name: 'user', element: User },
+  { path: '/user', name: 'User', element: User },
   { path: '/report', name: 'Report', element: PetOwnerReport, exact: true },
   { path: '/report/pet_owner', name: 'Pet Owner Report', element: PetOwnerReport },
   {
@@ -37,6 +38,7 @@ const routes = [
   { path: '/species', name: 'Sepcies', element: AntiRabiesSpecies, exact: true },
   { path: '/species/anti_rabies', name: 'Anti Rabies Species', element: AntiRabiesSpecies },
   { path: '/species/deworming', name: 'Deworm Species', element: DewormSpecies },
+  { path: '/medication', name: 'Medication', element: Medication },
 ]
 
 export default routes
