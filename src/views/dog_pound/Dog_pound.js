@@ -49,7 +49,7 @@ pdfMake.vfs = pdfFonts.pdfMake.vfs
 const Pet_owner = () => {
   const _table = 'dog_pound'
   const [data, setData] = useState([])
-  const [newDadtaFormModalVisible, setNewDataFormModalVisible] = useState(false)
+  const [newDataFormModalVisible, setNewDataFormModalVisible] = useState(false)
   const [reportFormModalVisible, setReportFormModalVisible] = useState(false)
   const [validated, setValidated] = useState(false)
   const [editMode, setEditMode] = useState(false)
@@ -98,7 +98,7 @@ const Pet_owner = () => {
           const dogPoundArray = Object.values(dogPoundData)
 
           const filteredData = dogPoundArray.filter((item) => {
-            const date = new Date(item.timestamp)
+            const date = new Date(item.date)
             const year = date.getFullYear()
             return year === currentYear
           })
@@ -494,47 +494,44 @@ const Pet_owner = () => {
     setFormReportData({ ...formReportData, [name]: value })
   }
 
-  const columns = useMemo(
-    () => [
-      {
-        accessorKey: 'date',
-        header: 'Date',
-      },
-      {
-        accessorKey: 'or_number',
-        header: 'Or #',
-      },
-      {
-        accessorKey: 'owner_name',
-        header: 'Owner Name',
-      },
-      {
-        accessorKey: 'pet_name',
-        header: 'Pet Name',
-      },
-      {
-        accessorKey: 'color',
-        header: 'Color',
-      },
-      {
-        accessorKey: 'sex',
-        header: 'Sex',
-      },
-      {
-        accessorKey: 'size',
-        header: 'Size',
-      },
-      {
-        accessorKey: 'address',
-        header: 'Address',
-      },
-      {
-        accessorKey: 'created_at',
-        header: 'Created At',
-      },
-    ],
-    [],
-  )
+  const columns = [
+    {
+      accessorKey: 'date',
+      header: 'Date',
+    },
+    {
+      accessorKey: 'or_number',
+      header: 'Or #',
+    },
+    {
+      accessorKey: 'owner_name',
+      header: 'Owner Name',
+    },
+    {
+      accessorKey: 'pet_name',
+      header: 'Pet Name',
+    },
+    {
+      accessorKey: 'color',
+      header: 'Color',
+    },
+    {
+      accessorKey: 'sex',
+      header: 'Sex',
+    },
+    {
+      accessorKey: 'size',
+      header: 'Size',
+    },
+    {
+      accessorKey: 'address',
+      header: 'Address',
+    },
+    {
+      accessorKey: 'created_at',
+      header: 'Created At',
+    },
+  ]
 
   const csvOptions = {
     fieldSeparator: ',',
@@ -548,6 +545,9 @@ const Pet_owner = () => {
 
   const csvExporter = new ExportToCsv(csvOptions)
 
+  const handleExportRows = (rows) => {
+    csvExporter.generateCsv(rows.map((row) => row.original))
+  }
   const handleExportData = () => {
     csvExporter.generateCsv(data)
   }
@@ -583,6 +583,7 @@ const Pet_owner = () => {
                 enableColumnResizing
                 initialState={{ density: 'compact' }}
                 positionToolbarAlertBanner="bottom"
+                enableRowSelection
                 renderRowActionMenuItems={({ closeMenu, row }) => [
                   <MenuItem
                     key={0}
@@ -651,8 +652,16 @@ const Pet_owner = () => {
                 ]}
                 renderTopToolbarCustomActions={({ table }) => (
                   <Box sx={{ display: 'flex', gap: '1rem', p: '0.5rem', flexWrap: 'wrap' }}>
-                    <CButton size="sm" className="btn-info text-white" onClick={handleExportData}>
+                    <CButton size="md" className="btn-info text-white" onClick={handleExportData}>
                       <FontAwesomeIcon icon={faFileExcel} /> Export to Excel
+                    </CButton>
+                    <CButton
+                      disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+                      //only export selected rows
+                      onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
+                      variant="outline"
+                    >
+                      <FontAwesomeIcon icon={faFileExcel} /> Export Selected Rows
                     </CButton>
                   </Box>
                 )}
@@ -665,7 +674,7 @@ const Pet_owner = () => {
       {/* Add New Data */}
       <CModal
         alignment="center"
-        visible={newDadtaFormModalVisible}
+        visible={newDataFormModalVisible}
         onClose={() => setNewDataFormModalVisible(false)}
         backdrop="static"
         keyboard={false}
