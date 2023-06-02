@@ -1,84 +1,70 @@
 import React, { useEffect, useState } from 'react'
+import { cilFilter } from '@coreui/icons'
+import CIcon from '@coreui/icons-react'
 import {
   CAlert,
   CButton,
-  CButtonGroup,
   CCard,
   CCardBody,
-  CCardFooter,
   CCardHeader,
   CCol,
-  CDropdown,
-  CDropdownItem,
-  CDropdownMenu,
-  CDropdownToggle,
   CForm,
-  CFormInput,
   CFormSelect,
   CModal,
   CModalBody,
   CModalHeader,
   CModalTitle,
-  CProgress,
   CRow,
 } from '@coreui/react'
-import Draggable from 'react-draggable'
-import CIcon from '@coreui/icons-react'
-import {
-  CChart,
-  CChartBar,
-  CChartDoughnut,
-  CChartLine,
-  CChartPie,
-  CChartPolarArea,
-  CChartRadar,
-} from '@coreui/react-chartjs'
-import {
-  auth,
-  equalTo,
-  database,
-  ref,
-  get,
-  push,
-  update,
-  set,
-  serverTimestamp,
-  query,
-  orderByChild,
-  child,
-  onValue,
-  remove,
-} from '../../firebaseConfig'
+import { CChartBar } from '@coreui/react-chartjs'
+import { faCancel } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
+import Draggable from 'react-draggable'
 import {
-  cilCalendar,
-  cilCalendarCheck,
-  cilCloudDownload,
-  cilFilter,
-  cilOptions,
-} from '@coreui/icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCancel, faFilter } from '@fortawesome/free-solid-svg-icons'
+  auth,
+  database,
+  equalTo,
+  get,
+  onValue,
+  orderByChild,
+  query,
+  ref,
+} from '../../firebaseConfig'
 
 const Dashboard = () => {
   const [status, setStatus] = useState(null)
   const [email, setEmail] = useState(null)
   const [dogPoundData, setDogPoundData] = useState([])
   const [dogPoundTotalData, setDogPoundTotalData] = useState([])
-  const [speciesOptions, setSpeciesOptions] = useState([])
+  const [antiRabiesSpeciesOptions, setAntiRabiesSpeciesOptions] = useState([])
+  const [dewormingSpeciesOptions, setDewormingOptions] = useState([])
+  const [medicationOptions, setMedicationOptions] = useState([])
   const [selectedSpeciesAntiRabies, setSelectedSpeciesAntiRabies] = useState('-NWjlZLSfWsrJgtMS0j7')
   const [antiRabiesData, setAntiRabiesData] = useState([])
   const [antiRabiesTotalData, setAntiRabiesTotalData] = useState([])
-  const [selectedSpeciesDeworming, setSelectedSpeciesDeworming] = useState('Carabao')
+  const [selectedSpeciesDeworming, setSelectedSpeciesDeworming] = useState('-NWjm_MQYI0XlG55JJ4P')
   const [dewormingData, setDewormingData] = useState([])
   const [dewormingTotalData, setDewormingTotalData] = useState([])
-  const [startDate, setStartDate] = useState(new Date('2014/02/08'))
-  const [endDate, setEndDate] = useState(new Date('2014/02/10'))
   const [dogPoundFormModalVisible, setDogPoundFormModalVisible] = useState(false)
+  const [antiRabiesFormModalVisible, setAntiRabiesFormModalVisible] = useState(false)
+  const [dewormingFormModalVisible, setDewormingFormModalVisible] = useState(false)
   const [validated, setValidated] = useState(false)
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
   const [formDogPoundData, setFormDogPoundData] = useState({
+    start_date: '',
+    end_date: '',
+  })
+  const [formAntiRabiesData, setFormAntiRabiesData] = useState({
+    species: selectedSpeciesAntiRabies,
+    neutered: '',
+    start_date: '',
+    end_date: '',
+  })
+  const [formDewormingData, setFormDewormingData] = useState({
+    species: selectedSpeciesDeworming,
+    medication: '',
     start_date: '',
     end_date: '',
   })
@@ -87,9 +73,11 @@ const Dashboard = () => {
     fetchDogPoundData()
     // Anti Rabies data
     fetchAntiTabiesSpecies()
-    fetchAntiRabiesData(selectedSpeciesAntiRabies)
+    fetchAntiRabiesData()
     // Deworming data
-    fetchDewormingData(selectedSpeciesDeworming)
+    fetchDewormingSpecies()
+    fetchDewormingData()
+    fetchMedication()
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setEmail(user.email)
@@ -110,11 +98,6 @@ const Dashboard = () => {
 
     return () => unsubscribe()
   }, [dogPoundData])
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    const options = { month: 'long', day: 'numeric', year: 'numeric' }
-    return date.toLocaleDateString('en-US', options)
-  }
   const fetchDogPoundData = async () => {
     try {
       const barangayRef = ref(database, 'barangay')
@@ -182,7 +165,7 @@ const Dashboard = () => {
       console.error('Error fetching dog owner data:', error)
     }
   }
-  const fetchAntiRabiesData = async (_species) => {
+  const fetchAntiRabiesData = async () => {
     try {
       const barangayRef = ref(database, 'barangay')
       const barangaySnapshot = await get(barangayRef)
@@ -199,9 +182,24 @@ const Dashboard = () => {
       const currentYear = new Date().getFullYear()
       // Loop through each anti rabies
       for (const anti_rabies of antiRabies) {
-        const { address, sex, timestamp, species } = anti_rabies
-        if (currentYear == new Date(timestamp).getFullYear()) {
-          if (species == _species) {
+        const { address, sex, timestamp, species, date_vaccinated, neutered } = anti_rabies
+
+        // const dateVaccinatedDate = new Date(date_vaccinated).getFullYear()
+        const startDate = formAntiRabiesData.start_date
+          ? new Date(formAntiRabiesData.start_date)
+          : null
+        const endDate = formAntiRabiesData.end_date ? new Date(formAntiRabiesData.end_date) : null
+        const antiRabiesSpecies = formAntiRabiesData.species ? formAntiRabiesData.species : null
+        const speciesNeutered = formAntiRabiesData.neutered ? formAntiRabiesData.neutered : null
+
+        if (
+          currentYear == new Date(date_vaccinated).getFullYear() &&
+          (startDate === null || endDate === null
+            ? true
+            : new Date(date_vaccinated) >= startDate && new Date(date_vaccinated) < endDate) &&
+          (speciesNeutered === null ? true : speciesNeutered === neutered)
+        ) {
+          if (species == formAntiRabiesData.species) {
             // Find the corresponding barangay for the current anti rabies
             const index = barangays.indexOf(address)
             if (index !== -1) {
@@ -243,7 +241,7 @@ const Dashboard = () => {
     }
   }
 
-  const fetchDewormingData = async (_species) => {
+  const fetchDewormingData = async () => {
     try {
       const barangayRef = ref(database, 'barangay')
       const barangaySnapshot = await get(barangayRef)
@@ -260,9 +258,23 @@ const Dashboard = () => {
       const currentYear = new Date().getFullYear()
       // Loop through each deworming
       for (const deworm of deworming) {
-        const { address, female, male, timestamp, species } = deworm
-        if (currentYear == new Date(timestamp).getFullYear()) {
-          if (species === _species) {
+        const { address, female, male, timestamp, species, date_deworming, treatment } = deworm
+
+        const startDate = formDewormingData.start_date
+          ? new Date(formDewormingData.start_date)
+          : null
+        const endDate = formDewormingData.end_date ? new Date(formDewormingData.end_date) : null
+        const medication = formDewormingData.medication ? formDewormingData.medication : null
+
+        // console.info(species)
+        if (
+          currentYear == new Date(date_deworming).getFullYear() &&
+          (startDate === null || endDate === null
+            ? true
+            : new Date(date_deworming) >= startDate && new Date(date_deworming) < endDate) &&
+          (medication === null ? true : medication == treatment)
+        ) {
+          if (species === formDewormingData.species) {
             // Find the corresponding barangay for the current deworming
             const index = barangays.indexOf(address)
             if (index !== -1) {
@@ -305,10 +317,10 @@ const Dashboard = () => {
     }
   }
 
-  const handleAntiRabiesChange = (e) => {
-    const { value } = e.target
-    setSelectedSpeciesAntiRabies(value)
-  }
+  // const handleAntiRabiesChange = (e) => {
+  //   const { value } = e.target
+  //   setSelectedSpeciesAntiRabies(value)
+  // }
 
   const fetchAntiTabiesSpecies = async () => {
     try {
@@ -316,16 +328,39 @@ const Dashboard = () => {
       const snapshot = await get(databaseRef)
       if (snapshot.exists()) {
         const species = Object.values(snapshot.val()).sort((a, b) => a.name.localeCompare(b.name))
-        setSpeciesOptions(species)
+        setAntiRabiesSpeciesOptions(species)
       }
     } catch (error) {
       console.error('Error fetching species data:', error)
     }
   }
 
-  const handleDewormChange = (e) => {
-    const { value } = e.target
-    setSelectedSpeciesDeworming(value)
+  const fetchDewormingSpecies = async () => {
+    try {
+      const databaseRef = ref(database, 'deworm_species')
+      const snapshot = await get(databaseRef)
+      if (snapshot.exists()) {
+        const species = Object.values(snapshot.val()).sort((a, b) => a.name.localeCompare(b.name))
+        setDewormingOptions(species)
+      }
+    } catch (error) {
+      console.error('Error fetching species data:', error)
+    }
+  }
+
+  const fetchMedication = async () => {
+    try {
+      const databaseRef = ref(database, 'medication')
+      const snapshot = await get(databaseRef)
+      if (snapshot.exists()) {
+        const medication = Object.values(snapshot.val()).sort((a, b) =>
+          a.medication.localeCompare(b.medication),
+        )
+        setMedicationOptions(medication)
+      }
+    } catch (error) {
+      console.error('Error fetching medication data:', error)
+    }
   }
 
   const handleDisplayDogPoundModal = () => {
@@ -339,6 +374,40 @@ const Dashboard = () => {
 
   const handleDogPoundResetFilter = () => {
     setFormDogPoundData({ ...formDogPoundData, start_date: '', end_date: '' })
+  }
+  const handleDisplayAntiRabiesModal = () => {
+    setAntiRabiesFormModalVisible(true)
+  }
+
+  const handleAntiRabiesChange = (e) => {
+    const { name, value } = e.target
+    setFormAntiRabiesData({ ...formAntiRabiesData, [name]: value })
+  }
+  const handleAntiRabiesResetFilter = () => {
+    setFormAntiRabiesData({
+      ...formAntiRabiesData,
+      species: '-NWjlZLSfWsrJgtMS0j7',
+      neutered: '',
+      start_date: '',
+      end_date: '',
+    })
+  }
+
+  const handleDisplayDewormingModal = () => {
+    setDewormingFormModalVisible(true)
+  }
+
+  const handleDewormingChange = (e) => {
+    const { name, value } = e.target
+    setFormDewormingData({ ...formDewormingData, [name]: value })
+  }
+  const handleDewormingResetFilter = () => {
+    setFormDewormingData({
+      ...formDewormingData,
+      species: '-NWjm_MQYI0XlG55JJ4P',
+      start_date: '',
+      end_date: '',
+    })
   }
 
   return (
@@ -377,7 +446,7 @@ const Dashboard = () => {
             <CCard className="mb-4">
               <CCardBody>
                 <CRow>
-                  <CCol xs={4}>
+                  <CCol sm={5}>
                     <h4 id="anti-rabies" className="card-title mb-0">
                       Anti-Rabies
                     </h4>
@@ -386,28 +455,26 @@ const Dashboard = () => {
                       <strong>Female:</strong> {antiRabiesTotalData.female}
                     </div>
                   </CCol>
-                  <CCol xs={8} className="text-end">
-                    <CForm className="float-end">
-                      <CFormSelect size="sm" name="species" onChange={handleAntiRabiesChange}>
-                        <option disabled>Choose...</option>
-                        {speciesOptions.map((species) => (
-                          <option key={species.id} value={species.id}>
-                            {species.name}
-                          </option>
-                        ))}
-                      </CFormSelect>
-                    </CForm>
+                  <CCol sm={7} className="d-md-block">
+                    <CButton
+                      color="primary"
+                      variant="outline"
+                      className="float-end"
+                      onClick={handleDisplayAntiRabiesModal}
+                    >
+                      <CIcon icon={cilFilter} />
+                    </CButton>
                   </CCol>
                 </CRow>
                 <CChartBar data={antiRabiesData} height={150} labels="anti_tabies" />
               </CCardBody>
             </CCard>
           </CCol>
-          {/* <CCol md={12}>
+          <CCol md={12}>
             <CCard className="mb-4">
               <CCardBody>
                 <CRow>
-                  <CCol xs={5}>
+                  <CCol sm={5}>
                     <h4 id="deworming" className="card-title mb-0">
                       Deworming
                     </h4>
@@ -416,21 +483,21 @@ const Dashboard = () => {
                       <strong>Female:</strong> {dewormingTotalData.female}
                     </div>
                   </CCol>
-                  <CCol xs={7} className="d-md-block">
-                    <CForm className="float-end">
-                      <CFormSelect size="sm" name="species" onChange={handleDewormChange}>
-                        <option disabled>Choose...</option>
-                        <option value="Carabao">Carabao</option>
-                        <option value="Chicken">Chicken</option>
-                        <option value="Cow">Cow</option>
-                      </CFormSelect>
-                    </CForm>
+                  <CCol sm={7} className="d-md-block">
+                    <CButton
+                      color="primary"
+                      variant="outline"
+                      className="float-end"
+                      onClick={handleDisplayDewormingModal}
+                    >
+                      <CIcon icon={cilFilter} />
+                    </CButton>
                   </CCol>
                 </CRow>
                 <CChartBar data={dewormingData} height={150} labels="anti_tabies" />
               </CCardBody>
             </CCard>
-          </CCol> */}
+          </CCol>
 
           {/* Dog Pound Date Range */}
           <Draggable
@@ -513,11 +580,235 @@ const Dashboard = () => {
                       required
                     />
                   </CCol>
-                  {/* <CCol xs={12}>
-                  <CButton color="primary" type="submit" className="float-end">
-                    Generate
+                </CForm>
+              </CModalBody>
+            </CModal>
+          </Draggable>
+
+          {/* Anti-Rabies Date Range */}
+          <Draggable
+            handle=".modal-header"
+            position={modalPosition}
+            onStop={(e, data) => {
+              setModalPosition({ x: data.x, y: data.y })
+            }}
+          >
+            <CModal
+              alignment="center"
+              visible={antiRabiesFormModalVisible}
+              onClose={() => setAntiRabiesFormModalVisible(false)}
+              backdrop="static"
+              keyboard={false}
+              size="md"
+            >
+              <CModalHeader>
+                <CModalTitle>Filter</CModalTitle>
+              </CModalHeader>
+              <CModalBody>
+                <p className="text-small-emphasis">
+                  Note:{' '}
+                  <strong>
+                    <span className="text-danger">*</span> is required
+                  </strong>
+                </p>
+                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <CButton color="danger" variant="outline" onClick={handleAntiRabiesResetFilter}>
+                    <FontAwesomeIcon icon={faCancel} /> Reset Filter
                   </CButton>
-                </CCol> */}
+                </div>
+                <CForm className="row g-3 needs-validation" noValidate validated={validated}>
+                  <CCol md={12}>
+                    <CFormSelect
+                      size="xs"
+                      label="Species"
+                      name="species"
+                      onChange={handleAntiRabiesChange}
+                    >
+                      <option disabled>Choose...</option>
+                      {antiRabiesSpeciesOptions.map((species) => (
+                        <option key={species.id} value={species.id}>
+                          {species.name}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </CCol>
+                  <CCol md={12}>
+                    <CFormSelect
+                      size="xs"
+                      label="Neutered"
+                      name="neutered"
+                      onChange={handleAntiRabiesChange}
+                    >
+                      <option value="">Choose...</option>
+                      <option value="Y">Yes</option>
+                      <option value="N">No</option>
+                    </CFormSelect>
+                  </CCol>
+                  <CCol md={6}>
+                    <label htmlFor="startDate">
+                      {
+                        <>
+                          Start Date
+                          <span className="text-warning">
+                            <strong>*</strong>
+                          </span>
+                        </>
+                      }
+                    </label>
+                    <DatePicker
+                      selected={formAntiRabiesData.start_date}
+                      className="form-control"
+                      onChange={(date) =>
+                        handleAntiRabiesChange({ target: { name: 'start_date', value: date } })
+                      }
+                      selectsStart
+                      startDate={formAntiRabiesData.start_date}
+                      endDate={formAntiRabiesData.end_date}
+                      name="start_date"
+                      required
+                    />
+                  </CCol>
+                  <CCol md={6}>
+                    <label htmlFor="endDate">
+                      {
+                        <>
+                          End Date
+                          <span className="text-warning">
+                            <strong>*</strong>
+                          </span>
+                        </>
+                      }
+                    </label>
+                    <DatePicker
+                      className="form-control"
+                      selected={formAntiRabiesData.end_date}
+                      onChange={(date) =>
+                        handleAntiRabiesChange({ target: { name: 'end_date', value: date } })
+                      }
+                      selectsEnd
+                      startDate={formAntiRabiesData.start_date}
+                      endDate={formAntiRabiesData.end_date}
+                      minDate={formAntiRabiesData.start_date}
+                      name="end_date"
+                      required
+                    />
+                  </CCol>
+                </CForm>
+              </CModalBody>
+            </CModal>
+          </Draggable>
+
+          {/* Deworming Date Range */}
+          <Draggable
+            handle=".modal-header"
+            position={modalPosition}
+            onStop={(e, data) => {
+              setModalPosition({ x: data.x, y: data.y })
+            }}
+          >
+            <CModal
+              alignment="center"
+              visible={dewormingFormModalVisible}
+              onClose={() => setDewormingFormModalVisible(false)}
+              backdrop="static"
+              keyboard={false}
+              size="md"
+            >
+              <CModalHeader>
+                <CModalTitle>Filter</CModalTitle>
+              </CModalHeader>
+              <CModalBody>
+                <p className="text-small-emphasis">
+                  Note:{' '}
+                  <strong>
+                    <span className="text-danger">*</span> is required
+                  </strong>
+                </p>
+                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <CButton color="danger" variant="outline" onClick={handleDewormingResetFilter}>
+                    <FontAwesomeIcon icon={faCancel} /> Reset Filter
+                  </CButton>
+                </div>
+                <CForm className="row g-3 needs-validation" noValidate validated={validated}>
+                  <CCol md={12}>
+                    <CFormSelect
+                      size="xs"
+                      label="Species"
+                      name="species"
+                      onChange={handleDewormingChange}
+                    >
+                      <option disabled>Choose...</option>
+                      {dewormingSpeciesOptions.map((species) => (
+                        <option key={species.id} value={species.id}>
+                          {species.name}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </CCol>
+                  <CCol md={12}>
+                    <CFormSelect
+                      size="xs"
+                      label="Medication"
+                      name="medication"
+                      onChange={handleDewormingChange}
+                    >
+                      <option value="">Choose...</option>
+                      {medicationOptions.map((species) => (
+                        <option key={species.id} value={species.id}>
+                          {species.medication}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </CCol>
+                  <CCol md={6}>
+                    <label htmlFor="startDate">
+                      {
+                        <>
+                          Start Date
+                          <span className="text-warning">
+                            <strong>*</strong>
+                          </span>
+                        </>
+                      }
+                    </label>
+                    <DatePicker
+                      selected={formDewormingData.start_date}
+                      className="form-control"
+                      onChange={(date) =>
+                        handleDewormingChange({ target: { name: 'start_date', value: date } })
+                      }
+                      selectsStart
+                      startDate={formDewormingData.start_date}
+                      endDate={formDewormingData.end_date}
+                      name="start_date"
+                      required
+                    />
+                  </CCol>
+                  <CCol md={6}>
+                    <label htmlFor="endDate">
+                      {
+                        <>
+                          End Date
+                          <span className="text-warning">
+                            <strong>*</strong>
+                          </span>
+                        </>
+                      }
+                    </label>
+                    <DatePicker
+                      className="form-control"
+                      selected={formDewormingData.end_date}
+                      onChange={(date) =>
+                        handleDewormingChange({ target: { name: 'end_date', value: date } })
+                      }
+                      selectsEnd
+                      startDate={formDewormingData.start_date}
+                      endDate={formDewormingData.end_date}
+                      minDate={formDewormingData.start_date}
+                      name="end_date"
+                      required
+                    />
+                  </CCol>
                 </CForm>
               </CModalBody>
             </CModal>
