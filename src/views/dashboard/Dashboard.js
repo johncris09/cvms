@@ -22,7 +22,7 @@ import {
   CProgress,
   CRow,
 } from '@coreui/react'
-
+import Draggable from 'react-draggable'
 import CIcon from '@coreui/icons-react'
 import {
   CChart,
@@ -51,9 +51,15 @@ import {
 } from '../../firebaseConfig'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
-import { cilCalendar, cilCalendarCheck, cilCloudDownload, cilOptions } from '@coreui/icons'
+import {
+  cilCalendar,
+  cilCalendarCheck,
+  cilCloudDownload,
+  cilFilter,
+  cilOptions,
+} from '@coreui/icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFilter } from '@fortawesome/free-solid-svg-icons'
+import { faCancel, faFilter } from '@fortawesome/free-solid-svg-icons'
 
 const Dashboard = () => {
   const [status, setStatus] = useState(null)
@@ -71,7 +77,7 @@ const Dashboard = () => {
   const [endDate, setEndDate] = useState(new Date('2014/02/10'))
   const [dogPoundFormModalVisible, setDogPoundFormModalVisible] = useState(false)
   const [validated, setValidated] = useState(false)
-
+  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
   const [formDogPoundData, setFormDogPoundData] = useState({
     start_date: '',
     end_date: '',
@@ -130,7 +136,6 @@ const Dashboard = () => {
         const dogPoundDate = new Date(date).getFullYear()
         const startDate = formDogPoundData.start_date ? new Date(formDogPoundData.start_date) : null
         const endDate = formDogPoundData.end_date ? new Date(formDogPoundData.end_date) : null
-        // console.info({ startDate, endDate })
         if (
           currentYear === dogPoundDate &&
           (startDate === null || endDate === null
@@ -138,7 +143,6 @@ const Dashboard = () => {
             : new Date(date) >= startDate && new Date(date) < endDate)
         ) {
           let _date = new Date(date)
-          console.info({ startDate, endDate, _date })
           // Find the corresponding barangay for the current dog pound
           const index = barangays.indexOf(address)
           if (index !== -1) {
@@ -333,6 +337,10 @@ const Dashboard = () => {
     setFormDogPoundData({ ...formDogPoundData, [name]: value })
   }
 
+  const handleDogPoundResetFilter = () => {
+    setFormDogPoundData({ ...formDogPoundData, start_date: '', end_date: '' })
+  }
+
   return (
     <>
       {status === 'Approved' ? (
@@ -357,7 +365,7 @@ const Dashboard = () => {
                       className="float-end"
                       onClick={handleDisplayDogPoundModal}
                     >
-                      <CIcon icon={cilCalendar} />
+                      <CIcon icon={cilFilter} />
                     </CButton>
                   </CCol>
                 </CRow>
@@ -425,84 +433,95 @@ const Dashboard = () => {
           </CCol> */}
 
           {/* Dog Pound Date Range */}
-          <CModal
-            alignment="center"
-            visible={dogPoundFormModalVisible}
-            onClose={() => setDogPoundFormModalVisible(false)}
-            backdrop="static"
-            keyboard={false}
-            size="md"
+          <Draggable
+            handle=".modal-header"
+            position={modalPosition}
+            onStop={(e, data) => {
+              setModalPosition({ x: data.x, y: data.y })
+            }}
           >
-            <CModalHeader>
-              <CModalTitle>
-                <FontAwesomeIcon icon={faFilter} /> Filter by Date
-              </CModalTitle>
-            </CModalHeader>
-            <CModalBody>
-              <p className="text-small-emphasis">
-                Note:{' '}
-                <strong>
-                  <span className="text-danger">*</span> is required
-                </strong>
-              </p>
-              <CForm className="row g-3 needs-validation" noValidate validated={validated}>
-                <CCol md={6}>
-                  <label htmlFor="startDate">
-                    {
-                      <>
-                        Start Date
-                        <span className="text-warning">
-                          <strong>*</strong>
-                        </span>
-                      </>
-                    }
-                  </label>
-                  <DatePicker
-                    selected={formDogPoundData.start_date}
-                    className="form-control"
-                    onChange={(date) =>
-                      handleDogPoundChange({ target: { name: 'start_date', value: date } })
-                    }
-                    selectsStart
-                    startDate={formDogPoundData.start_date}
-                    endDate={formDogPoundData.end_date}
-                    name="start_date"
-                    required
-                  />
-                </CCol>
-                <CCol md={6}>
-                  <label htmlFor="endDate">
-                    {
-                      <>
-                        End Date
-                        <span className="text-warning">
-                          <strong>*</strong>
-                        </span>
-                      </>
-                    }
-                  </label>
-                  <DatePicker
-                    className="form-control"
-                    selected={formDogPoundData.end_date}
-                    onChange={(date) =>
-                      handleDogPoundChange({ target: { name: 'end_date', value: date } })
-                    }
-                    selectsEnd
-                    startDate={formDogPoundData.start_date}
-                    endDate={formDogPoundData.end_date}
-                    minDate={formDogPoundData.start_date}
-                    name="end_date"
-                    required
-                  />
-                </CCol>
-                {/* <CCol xs={12}>
+            <CModal
+              alignment="center"
+              visible={dogPoundFormModalVisible}
+              onClose={() => setDogPoundFormModalVisible(false)}
+              backdrop="static"
+              keyboard={false}
+              size="md"
+            >
+              <CModalHeader>
+                <CModalTitle>Filter</CModalTitle>
+              </CModalHeader>
+              <CModalBody>
+                <p className="text-small-emphasis">
+                  Note:{' '}
+                  <strong>
+                    <span className="text-danger">*</span> is required
+                  </strong>
+                </p>
+                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <CButton color="danger" variant="outline" onClick={handleDogPoundResetFilter}>
+                    <FontAwesomeIcon icon={faCancel} /> Reset Filter
+                  </CButton>
+                </div>
+                <CForm className="row g-3 needs-validation" noValidate validated={validated}>
+                  <CCol md={6}>
+                    <label htmlFor="startDate">
+                      {
+                        <>
+                          Start Date
+                          <span className="text-warning">
+                            <strong>*</strong>
+                          </span>
+                        </>
+                      }
+                    </label>
+                    <DatePicker
+                      selected={formDogPoundData.start_date}
+                      className="form-control"
+                      onChange={(date) =>
+                        handleDogPoundChange({ target: { name: 'start_date', value: date } })
+                      }
+                      selectsStart
+                      startDate={formDogPoundData.start_date}
+                      endDate={formDogPoundData.end_date}
+                      name="start_date"
+                      required
+                    />
+                  </CCol>
+                  <CCol md={6}>
+                    <label htmlFor="endDate">
+                      {
+                        <>
+                          End Date
+                          <span className="text-warning">
+                            <strong>*</strong>
+                          </span>
+                        </>
+                      }
+                    </label>
+                    <DatePicker
+                      className="form-control"
+                      selected={formDogPoundData.end_date}
+                      onChange={(date) =>
+                        handleDogPoundChange({ target: { name: 'end_date', value: date } })
+                      }
+                      selectsEnd
+                      startDate={formDogPoundData.start_date}
+                      endDate={formDogPoundData.end_date}
+                      minDate={formDogPoundData.start_date}
+                      name="end_date"
+                      required
+                    />
+                  </CCol>
+                  {/* <CCol xs={12}>
                   <CButton color="primary" type="submit" className="float-end">
                     Generate
                   </CButton>
                 </CCol> */}
-              </CForm>
-            </CModalBody>
-          </CModal>
+                </CForm>
+              </CModalBody>
+            </CModal>
+          </Draggable>
         </CRow>
       ) : (
         <CRow>
