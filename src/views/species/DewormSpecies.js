@@ -43,10 +43,11 @@ import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 
 import Table from 'src/constant/Table'
+import TrackUserActivity from 'src/helper/TrackUserActivity'
 const MySwal = withReactContent(Swal)
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs
-const DewormSpecies = () => {
+const DewormSpecies = ({ userId }) => {
   const _table = 'deworm_species'
   const [data, setData] = useState([])
   const [newDadtaFormModalVisible, setNewDataFormModalVisible] = useState(false)
@@ -147,6 +148,14 @@ const DewormSpecies = () => {
           .catch((error) => {
             console.error('Error updating data:', error)
           })
+
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Deworming Species',
+          referenceTable: _table,
+          activity: 'Updated a record',
+          value: { id: selectedItemId, species: name },
+        })
       } else {
         // Add operation
         const newItemRef = push(ref(database, _table))
@@ -166,6 +175,14 @@ const DewormSpecies = () => {
           .catch((error) => {
             console.error('Error adding data:', error)
           })
+
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Deworming Species',
+          referenceTable: _table,
+          activity: 'Created a new record',
+          value: { id, species: name },
+        })
       }
       setValidated(false)
       setNewDataFormModalVisible(false)
@@ -272,6 +289,16 @@ const DewormSpecies = () => {
                         confirmButtonText: 'Yes, delete it!',
                       }).then((result) => {
                         if (result.isConfirmed) {
+                          let itemId = row.original.id
+                          let name = row.original.name
+                          TrackUserActivity({
+                            userId: userId,
+                            reference: 'Deworming Species',
+                            referenceTable: _table,
+                            activity: 'Deleted a record',
+                            value: { id: itemId, species: name },
+                          })
+
                           const itemRef = ref(database, `${_table}/${row.original.id}`)
                           remove(itemRef)
                           Swal.fire('Deleted!', 'Data has been deleted.', 'success')

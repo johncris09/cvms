@@ -43,10 +43,11 @@ import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 
 import Table from 'src/constant/Table'
+import TrackUserActivity from 'src/helper/TrackUserActivity'
 const MySwal = withReactContent(Swal)
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs
-const Medication = () => {
+const Medication = ({ userId }) => {
   const _table = 'medication'
   const [data, setData] = useState([])
   const [newDadtaFormModalVisible, setNewDataFormModalVisible] = useState(false)
@@ -147,6 +148,14 @@ const Medication = () => {
           .catch((error) => {
             console.error('Error updating data:', error)
           })
+
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Medication',
+          referenceTable: _table,
+          activity: 'Updated a record',
+          value: { id: selectedItemId, medication: medication },
+        })
       } else {
         // Add operation
         const newItemRef = push(ref(database, _table))
@@ -166,6 +175,14 @@ const Medication = () => {
           .catch((error) => {
             console.error('Error adding data:', error)
           })
+
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Medication',
+          referenceTable: _table,
+          activity: 'Created a new record',
+          value: { id: id, medication: medication },
+        })
       }
       setValidated(false)
       setNewDataFormModalVisible(false)
@@ -269,6 +286,16 @@ const Medication = () => {
                         confirmButtonText: 'Yes, delete it!',
                       }).then((result) => {
                         if (result.isConfirmed) {
+                          let itemId = row.original.id
+                          let medication = row.original.medication
+                          TrackUserActivity({
+                            userId: userId,
+                            reference: 'Medication',
+                            referenceTable: _table,
+                            activity: 'Deleted a record',
+                            value: { id: itemId, medication: medication },
+                          })
+
                           const itemRef = ref(database, `${_table}/${row.original.id}`)
                           remove(itemRef)
                           Swal.fire('Deleted!', 'Data has been deleted.', 'success')

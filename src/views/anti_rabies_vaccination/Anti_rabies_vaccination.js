@@ -41,10 +41,11 @@ import Table from 'src/constant/Table'
 import ConvertToTitleCase from 'src/helper/ConvertToTitleCase'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
+import TrackUserActivity from 'src/helper/TrackUserActivity'
 pdfMake.vfs = pdfFonts.pdfMake.vfs
 const MySwal = withReactContent(Swal)
 
-const Anti_rabies_vaccination = ({ roleType }) => {
+const Anti_rabies_vaccination = ({ roleType, userId }) => {
   const _table = 'anti_rabies_vaccination'
 
   const timestamp = serverTimestamp()
@@ -504,6 +505,19 @@ const Anti_rabies_vaccination = ({ roleType }) => {
               }
               const pdfDoc = pdfMake.createPdf(documentDefinition)
               pdfDoc.open()
+
+              TrackUserActivity({
+                userId: userId,
+                reference: 'Anti-rabies vaccination',
+                referenceTable: _table,
+                activity: 'Generated Automated Report',
+                value: {
+                  address: addressFilter,
+                  start_date: start_date,
+                  end_date: end_date,
+                  species: speciesFilter,
+                },
+              })
             } else {
               MySwal.fire({
                 title: <strong>No record found</strong>,
@@ -565,6 +579,13 @@ const Anti_rabies_vaccination = ({ roleType }) => {
           .catch((error) => {
             console.error('Error updating data:', error)
           })
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Anti-rabies vaccination',
+          referenceTable: _table,
+          activity: 'Updated a record',
+          value: { id: selectedItemId, owner_name: owner_name, pet_name: pet_name },
+        })
       } else {
         // Add operation
         const newItemRef = push(ref(database, _table))
@@ -593,6 +614,14 @@ const Anti_rabies_vaccination = ({ roleType }) => {
           .catch((error) => {
             console.error('Error adding data:', error)
           })
+
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Anti-rabies vaccination',
+          referenceTable: _table,
+          activity: 'Created a new record',
+          value: { id: selectedItemId, owner_name: owner_name, pet_name: pet_name },
+        })
       }
       setValidated(false)
       // setNewDataFormModalVisible(false)
@@ -676,9 +705,23 @@ const Anti_rabies_vaccination = ({ roleType }) => {
 
   const csvExporter = new ExportToCsv(csvOptions)
   const handleExportRows = (rows) => {
+    TrackUserActivity({
+      userId: userId,
+      reference: 'Anti-rabies vaccination',
+      referenceTable: _table,
+      activity: 'Exporting selected data to Excel',
+      value: { description: 'Generating selected row to Excel file' },
+    })
     csvExporter.generateCsv(rows.map((row) => row.original))
   }
   const handleExportData = () => {
+    TrackUserActivity({
+      userId: userId,
+      reference: 'Anti-rabies vaccination',
+      referenceTable: _table,
+      activity: 'Exporting data to Excel',
+      value: { description: 'Generating Excel file' },
+    })
     csvExporter.generateCsv(data)
   }
   return (
@@ -791,6 +834,17 @@ const Anti_rabies_vaccination = ({ roleType }) => {
                           cancelButtonColor: '#d33',
                           confirmButtonText: 'Yes, delete it!',
                         }).then((result) => {
+                          let id = row.original.id
+                          let owner_name = row.original.owner_name
+                          let pet_name = row.original.pet_name
+                          let color = row.original.color
+                          TrackUserActivity({
+                            userId: userId,
+                            reference: 'Anti-rabies vaccination',
+                            referenceTable: _table,
+                            activity: 'Deleted a record',
+                            value: { id: id, farmer: owner_name, pet_name: pet_name, color: color },
+                          })
                           if (result.isConfirmed) {
                             const itemRef = ref(database, `${_table}/${row.original.id}`)
                             remove(itemRef)

@@ -5,7 +5,7 @@ import { CContainer, CSpinner } from '@coreui/react'
 // routes config
 import routes from '../routes'
 
-const AppContent = ({ userRoleType }) => {
+const AppContent = ({ userRoleType, userId }) => {
   return (
     <CContainer lg>
       <Suspense fallback={<CSpinner color="primary" />}>
@@ -18,7 +18,7 @@ const AppContent = ({ userRoleType }) => {
                   path={route.path}
                   exact={route.exact}
                   name={route.name}
-                  element={<route.element roleType={userRoleType} />}
+                  element={<route.element roleType={userRoleType} userId={userId} />}
                 />
               )
             )

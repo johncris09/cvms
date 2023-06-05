@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import MaterialReactTable from 'material-react-table'
-import { ExportToCsv } from 'export-to-csv'
 import {
   CButton,
   CCard,
@@ -14,9 +13,8 @@ import {
   CModalBody,
   CForm,
   CFormInput,
-  CFormSelect,
 } from '@coreui/react'
-import { MenuItem, ListItemIcon, Box } from '@mui/material'
+import { MenuItem, ListItemIcon } from '@mui/material'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import {
@@ -34,19 +32,16 @@ import {
   remove,
 } from '../../firebaseConfig'
 import { DeleteOutline, EditSharp } from '@mui/icons-material'
-import { OroquietaCityLogo, cityVetLogo } from 'src/helper/LogoReport'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFileExcel, faFilePdf, faPlusCircle } from '@fortawesome/free-solid-svg-icons'
+import { faPlusCircle } from '@fortawesome/free-solid-svg-icons'
 import ConvertToTitleCase from '../../helper/ConvertToTitleCase'
-
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
-
-import Table from 'src/constant/Table'
+import TrackUserActivity from 'src/helper/TrackUserActivity'
 const MySwal = withReactContent(Swal)
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs
-const AntiRabiesSpecies = () => {
+const AntiRabiesSpecies = ({ userId }) => {
   const _table = 'anti_rabies_species'
   const [data, setData] = useState([])
   const [newDadtaFormModalVisible, setNewDataFormModalVisible] = useState(false)
@@ -147,6 +142,14 @@ const AntiRabiesSpecies = () => {
           .catch((error) => {
             console.error('Error updating data:', error)
           })
+
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Anti-Rabies Species',
+          referenceTable: _table,
+          activity: 'Updated a record',
+          value: { id: selectedItemId, species: name },
+        })
       } else {
         // Add operation
         const newItemRef = push(ref(database, _table))
@@ -166,6 +169,14 @@ const AntiRabiesSpecies = () => {
           .catch((error) => {
             console.error('Error adding data:', error)
           })
+
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Anti-Rabies Species',
+          referenceTable: _table,
+          activity: 'Created a new record',
+          value: { id, species: name, date_created: timestamp },
+        })
       }
       setValidated(false)
       setNewDataFormModalVisible(false)
@@ -272,8 +283,19 @@ const AntiRabiesSpecies = () => {
                         confirmButtonText: 'Yes, delete it!',
                       }).then((result) => {
                         if (result.isConfirmed) {
-                          const itemRef = ref(database, `${_table}/${row.original.id}`)
+                          let itemId = row.original.id
+                          let name = row.original.name
+                          TrackUserActivity({
+                            userId: userId,
+                            reference: 'Anti-Rabies Species',
+                            referenceTable: _table,
+                            activity: 'Deleted a record',
+                            value: { id: itemId, species: name },
+                          })
+
+                          const itemRef = ref(database, `${_table}/${itemId}`)
                           remove(itemRef)
+
                           Swal.fire('Deleted!', 'Data has been deleted.', 'success')
                         }
                       })

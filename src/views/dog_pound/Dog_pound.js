@@ -43,10 +43,11 @@ import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 
 import Table from 'src/constant/Table'
+import TrackUserActivity from 'src/helper/TrackUserActivity'
 const MySwal = withReactContent(Swal)
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs
-const Pet_owner = ({ roleType }) => {
+const Pet_owner = ({ roleType, userId }) => {
   const _table = 'dog_pound'
   const [data, setData] = useState([])
   const [newDataFormModalVisible, setNewDataFormModalVisible] = useState(false)
@@ -385,6 +386,18 @@ const Pet_owner = ({ roleType }) => {
             }
             const pdfDoc = pdfMake.createPdf(documentDefinition)
             pdfDoc.open()
+
+            TrackUserActivity({
+              userId: userId,
+              reference: 'Dog Pound',
+              referenceTable: _table,
+              activity: 'Generated Automated Report',
+              value: {
+                address: addressFilter,
+                start_date: start_date,
+                end_date: end_date,
+              },
+            })
           } else {
             MySwal.fire({
               title: <strong>No record found</strong>,
@@ -443,6 +456,19 @@ const Pet_owner = ({ roleType }) => {
           .catch((error) => {
             console.error('Error updating data:', error)
           })
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Dog Pound',
+          referenceTable: _table,
+          activity: 'Updated a record',
+          value: {
+            id: selectedItemId,
+            owner: owner_name,
+            or_number: or_number,
+            address: address,
+            pet_name: pet_name,
+          },
+        })
       } else {
         // Add operation
         const newItemRef = push(ref(database, _table))
@@ -470,6 +496,19 @@ const Pet_owner = ({ roleType }) => {
           .catch((error) => {
             console.error('Error adding data:', error)
           })
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Dog Pound',
+          referenceTable: _table,
+          activity: 'Created a new record',
+          value: {
+            id: id,
+            owner: owner_name,
+            or_number: or_number,
+            address: address,
+            pet_name: pet_name,
+          },
+        })
       }
       setValidated(false)
       setNewDataFormModalVisible(false)
@@ -546,9 +585,23 @@ const Pet_owner = ({ roleType }) => {
   const csvExporter = new ExportToCsv(csvOptions)
 
   const handleExportRows = (rows) => {
+    TrackUserActivity({
+      userId: userId,
+      reference: 'Dog Pound',
+      referenceTable: _table,
+      activity: 'Exporting selected data to Excel',
+      value: { description: 'Generating selected row to Excel file' },
+    })
     csvExporter.generateCsv(rows.map((row) => row.original))
   }
   const handleExportData = () => {
+    TrackUserActivity({
+      userId: userId,
+      reference: 'Dog Pound',
+      referenceTable: _table,
+      activity: 'Exporting data to Excel',
+      value: { description: 'Generating Excel file' },
+    })
     csvExporter.generateCsv(data)
   }
 
@@ -680,6 +733,26 @@ const Pet_owner = ({ roleType }) => {
                           cancelButtonColor: '#d33',
                           confirmButtonText: 'Yes, delete it!',
                         }).then((result) => {
+                          let id = row.original.id
+                          let owner_name = row.original.owner_name
+                          let address = row.original.address
+                          let or_number = row.original.or_number
+                          let pet_name = row.original.pet_name
+
+                          TrackUserActivity({
+                            userId: userId,
+                            reference: 'Dog Pound',
+                            referenceTable: _table,
+                            activity: 'Deleted a record',
+                            value: {
+                              id: selectedItemId,
+                              owner: owner_name,
+                              or_number: or_number,
+                              address: address,
+                              pet_name: pet_name,
+                            },
+                          })
+
                           if (result.isConfirmed) {
                             const itemRef = ref(database, `${_table}/${row.original.id}`)
                             remove(itemRef)

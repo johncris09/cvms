@@ -7,6 +7,7 @@ import {
   cilChart,
   cilDog,
   cilEyedropper,
+  cilHistory,
   cilListRich,
   cilSpeedometer,
   cilTablet,
@@ -107,6 +108,12 @@ const _nav = (userRoleType) => {
         name: 'Medication',
         to: '/medication',
         icon: <CIcon icon={cibFoursquare} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Activity Log',
+        to: '/activity_log',
+        icon: <CIcon icon={cilHistory} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,

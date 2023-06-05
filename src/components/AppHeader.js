@@ -20,7 +20,7 @@ import { AppHeaderDropdown } from './header/index'
 // import { logo } from 'src/assets/brand/logo'
 
 import logo from './../assets/images/logo.png'
-const AppHeader = () => {
+const AppHeader = ({ userId }) => {
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
 
@@ -41,7 +41,7 @@ const AppHeader = () => {
           </CNavItem>
         </CHeaderNav>
         <CHeaderNav className="ms-3">
-          <AppHeaderDropdown />
+          <AppHeaderDropdown userId={userId} />
         </CHeaderNav>
       </CContainer>
       <CHeaderDivider />

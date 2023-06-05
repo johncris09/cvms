@@ -11,8 +11,9 @@ import {
 import { cilUser, cilAccountLogout } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { auth } from './../../firebaseConfig'
+import TrackUserActivity from 'src/helper/TrackUserActivity'
 
-const AppHeaderDropdown = () => {
+const AppHeaderDropdown = ({ userId }) => {
   const [currentUser, setCurrentUser] = useState(null)
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -28,6 +29,14 @@ const AppHeaderDropdown = () => {
     return () => unsubscribe()
   }, [])
   const handleLogout = () => {
+    TrackUserActivity({
+      userId: userId,
+      reference: 'Users',
+      referenceTable: 'users',
+      activity: 'Logout',
+      value: { id: userId, email: currentUser.email, logout: new Date().toISOString() },
+    })
+
     auth
       .signOut()
       .then(() => {

@@ -3,7 +3,7 @@ import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/inde
 import Login from 'src/views/login/Login'
 import { auth, ref, database, onValue, query, orderByChild, equalTo } from './../firebaseConfig'
 const DefaultLayout = () => {
-  const [visible, setVisible] = useState(false)
+  const [userId, setUserId] = useState(false)
   const [user, setUser] = useState(null)
   const [status, setStatus] = useState(null)
   const [userRoleType, setUserRoleType] = useState(null)
@@ -18,6 +18,7 @@ const DefaultLayout = () => {
           const userData = snapshot.val()
           if (userData) {
             const userId = Object.keys(userData)[0]
+            setUserId(userId)
             setStatus(userData[userId].status)
             setUserRoleType(userData[userId].roleType)
           }
@@ -42,9 +43,9 @@ const DefaultLayout = () => {
         <>
           <AppSidebar userRoleType={userRoleType} />
           <div className="wrapper d-flex flex-column min-vh-100 bg-light">
-            <AppHeader />
+            <AppHeader userId={userId} />
             <div className="body flex-grow-1 px-3">
-              <AppContent userRoleType={userRoleType} />
+              <AppContent userRoleType={userRoleType} userId={userId} />
             </div>
             <AppFooter />
           </div>

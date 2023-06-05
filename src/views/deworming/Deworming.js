@@ -54,10 +54,11 @@ import Table from 'src/constant/Table'
 import ConvertToTitleCase from 'src/helper/ConvertToTitleCase'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
+import TrackUserActivity from 'src/helper/TrackUserActivity'
 pdfMake.vfs = pdfFonts.pdfMake.vfs
 const MySwal = withReactContent(Swal)
 
-const Deworming = ({ roleType }) => {
+const Deworming = ({ roleType, userId }) => {
   const _table = 'deworming'
   const timestamp = serverTimestamp()
   const [data, setData] = useState([])
@@ -523,6 +524,19 @@ const Deworming = ({ roleType }) => {
               }
               const pdfDoc = pdfMake.createPdf(documentDefinition)
               pdfDoc.open()
+
+              TrackUserActivity({
+                userId: userId,
+                reference: 'Deworming',
+                referenceTable: _table,
+                activity: 'Generated Automated Report',
+                value: {
+                  address: addressFilter,
+                  start_date: start_date,
+                  end_date: end_date,
+                  species: speciesFilter,
+                },
+              })
             } else {
               MySwal.fire({
                 title: <strong>No record found</strong>,
@@ -582,6 +596,13 @@ const Deworming = ({ roleType }) => {
           .catch((error) => {
             console.error('Error updating data:', error)
           })
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Deworming',
+          referenceTable: _table,
+          activity: 'Updated a record',
+          value: { id: selectedItemId, farmer: farmer_name, address: address, species: species },
+        })
       } else {
         // Add operation
         const newItemRef = push(ref(database, _table))
@@ -609,6 +630,13 @@ const Deworming = ({ roleType }) => {
           .catch((error) => {
             console.error('Error adding data:', error)
           })
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Deworming',
+          referenceTable: _table,
+          activity: 'Created a new record',
+          value: { id: id, farmer: farmer_name, address: address, species: species },
+        })
       }
       setValidated(false)
       // setNewDataFormModalVisible(false)
@@ -700,9 +728,23 @@ const Deworming = ({ roleType }) => {
 
   const csvExporter = new ExportToCsv(csvOptions)
   const handleExportRows = (rows) => {
+    TrackUserActivity({
+      userId: userId,
+      reference: 'Deworming',
+      referenceTable: _table,
+      activity: 'Exporting selected data to Excel',
+      value: { description: 'Generating selected row to Excel file' },
+    })
     csvExporter.generateCsv(rows.map((row) => row.original))
   }
   const handleExportData = () => {
+    TrackUserActivity({
+      userId: userId,
+      reference: 'Deworming',
+      referenceTable: _table,
+      activity: 'Exporting data to Excel',
+      value: { description: 'Generating Excel file' },
+    })
     csvExporter.generateCsv(data)
   }
   return (
@@ -779,7 +821,6 @@ const Deworming = ({ roleType }) => {
                               value,
                             }),
                           )
-                          console.info(inputs)
                           setFormData({
                             date_deworming: dewormingData.date_deworming,
                             address: dewormingData.address,
@@ -821,6 +862,17 @@ const Deworming = ({ roleType }) => {
                           confirmButtonText: 'Yes, delete it!',
                         }).then((result) => {
                           if (result.isConfirmed) {
+                            let id = row.original.id
+                            let farmer_name = row.original.farmer_name
+                            let address = row.original.address
+                            TrackUserActivity({
+                              userId: userId,
+                              reference: 'Deworming',
+                              referenceTable: _table,
+                              activity: 'Deleted a record',
+                              value: { id: id, farmer: farmer_name, address: address },
+                            })
+
                             const itemRef = ref(database, `${_table}/${row.original.id}`)
                             remove(itemRef)
                             Swal.fire('Deleted!', 'Data has been deleted.', 'success')

@@ -41,7 +41,7 @@ const Dashboard = ({ roleType }) => {
   const [antiRabiesSpeciesOptions, setAntiRabiesSpeciesOptions] = useState([])
   const [dewormingSpeciesOptions, setDewormingOptions] = useState([])
   const [medicationOptions, setMedicationOptions] = useState([])
-  const [selectedSpeciesAntiRabies, setSelectedSpeciesAntiRabies] = useState('-NWjlZLSfWsrJgtMS0j7')
+  const [selectedSpeciesAntiRabies, setSelectedSpeciesAntiRabies] = useState('-NX8KtCPVhgFEDDv0l0v')
   const [antiRabiesData, setAntiRabiesData] = useState([])
   const [antiRabiesTotalData, setAntiRabiesTotalData] = useState([])
   const [selectedSpeciesDeworming, setSelectedSpeciesDeworming] = useState('-NWjm_MQYI0XlG55JJ4P')
