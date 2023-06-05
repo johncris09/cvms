@@ -1,24 +1,38 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import MaterialReactTable from 'material-react-table'
-import { CCard, CCardBody, CCardHeader, CCol, CRow } from '@coreui/react'
-import { Box, MenuItem, ListItemIcon, IconButton, Tooltip } from '@mui/material'
-import { database, ref, get, set, update, onValue } from './../../firebaseConfig'
 import {
-  AccountCircle,
-  Check,
-  CheckBox,
-  Close,
-  DeleteOutline,
-  PendingActions,
-  Send,
-} from '@mui/icons-material'
+  CButton,
+  CCard,
+  CCardBody,
+  CCardHeader,
+  CCol,
+  CForm,
+  CFormSelect,
+  CModal,
+  CModalBody,
+  CModalHeader,
+  CModalTitle,
+  CRow,
+} from '@coreui/react'
+import { Box, ListItemIcon, MenuItem } from '@mui/material'
+import MaterialReactTable from 'material-react-table'
+import { faUserCheck } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { Check, CheckBox, Close, PendingActions } from '@mui/icons-material'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import { child, database, get, onValue, ref, update } from '../../firebaseConfig'
 const MySwal = withReactContent(Swal)
 
 const User = () => {
   const _table = 'users'
   const [data, setData] = useState([])
+  const [newDataFormModalVisible, setNewDataFormModalVisible] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [selectedItemId, setSelectedItemId] = useState(null)
+  const [validated, setValidated] = useState(false)
+  const [formData, setFormData] = useState({
+    role_type: '',
+  })
   useEffect(() => {
     fetchData()
   }, [])
@@ -140,6 +154,46 @@ const User = () => {
     ],
     [],
   )
+  const handleSetUserType = (event) => {
+    const form = event.currentTarget
+    if (form.checkValidity() === false) {
+      event.preventDefault()
+      event.stopPropagation()
+    } else {
+      event.preventDefault()
+      const formData = new FormData(form)
+      const role_type = formData.get('role_type')
+      if (selectedItemId) {
+        // Update operation
+        const itemRef = ref(database, `${_table}/${selectedItemId}`)
+        update(itemRef, {
+          roleType: role_type,
+        })
+          .then(() => {
+            MySwal.fire({
+              title: <strong>Success!</strong>,
+              html: <i>Role Type Successfully Updated!</i>,
+              icon: 'success',
+            })
+          })
+          .catch((error) => {
+            console.error('Error updating data:', error)
+          })
+      }
+      setValidated(false)
+      setNewDataFormModalVisible(false)
+    }
+    // form.reset()
+    setValidated(true)
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    console.info({ name, value })
+
+    setFormData({ ...formData, [name]: value })
+  }
+
   return (
     <CRow>
       <CCol xs={12}>
@@ -206,57 +260,147 @@ const User = () => {
                     Approved
                   </MenuItem>
                 ) : (
-                  <MenuItem
-                    key={0}
-                    onClick={() => {
-                      console.info(row.original)
-                      closeMenu()
-                      MySwal.fire({
-                        title: 'Confirm Disapproval',
-                        text: 'Are you sure you want to disapprove the user?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, disapproved it!',
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          // Update operation
-                          const itemRef = ref(database, `${_table}/${row.original.id}`)
-                          update(itemRef, {
-                            status: 'Disapproved',
+                  <>
+                    <MenuItem
+                      key={0}
+                      onClick={() => {
+                        closeMenu()
+                        MySwal.fire({
+                          title: 'Confirm Disapproval',
+                          text: 'Are you sure you want to disapprove the user?',
+                          icon: 'warning',
+                          showCancelButton: true,
+                          confirmButtonColor: '#3085d6',
+                          cancelButtonColor: '#d33',
+                          confirmButtonText: 'Yes, disapproved it!',
+                        }).then((result) => {
+                          if (result.isConfirmed) {
+                            // Update operation
+                            const itemRef = ref(database, `${_table}/${row.original.id}`)
+                            update(itemRef, {
+                              status: 'Disapproved',
+                            })
+                              .then(() => {
+                                MySwal.fire(
+                                  'User Dispproved!',
+                                  'The user has been successfully disapproved.',
+                                  'success',
+                                )
+                              })
+                              .catch((error) => {
+                                MySwal.fire(
+                                  'User Disapproved!',
+                                  'Error updating user status.',
+                                  'error',
+                                )
+                              })
+                            fetchData()
+                          }
+                        })
+                      }}
+                      sx={{ m: 0 }}
+                    >
+                      <ListItemIcon>
+                        <Close />
+                      </ListItemIcon>
+                      Disapproved
+                    </MenuItem>
+                    <MenuItem
+                      key={0}
+                      onClick={async () => {
+                        closeMenu()
+
+                        const userRef = ref(database, 'users')
+                        const usernapshot = await get(child(userRef, row.original.id))
+
+                        if (usernapshot.exists()) {
+                          // Pet owner data found
+                          const userData = usernapshot.val()
+
+                          setFormData({
+                            role_type: userData.roleType,
                           })
-                            .then(() => {
-                              MySwal.fire(
-                                'User Dispproved!',
-                                'The user has been successfully disapproved.',
-                                'success',
-                              )
-                            })
-                            .catch((error) => {
-                              MySwal.fire(
-                                'User Disapproved!',
-                                'Error updating user status.',
-                                'error',
-                              )
-                            })
-                          fetchData()
+
+                          setSelectedItemId(row.original.id) // Set the selected item ID
+                          setNewDataFormModalVisible(true)
+                          setEditMode(true)
+                        } else {
+                          // Pet owner data not found
+                          console.log('Pet owner not found')
                         }
-                      })
-                    }}
-                    sx={{ m: 0 }}
-                  >
-                    <ListItemIcon>
-                      <Close />
-                    </ListItemIcon>
-                    Disapproved
-                  </MenuItem>
+                      }}
+                      sx={{ m: 0 }}
+                    >
+                      <ListItemIcon>
+                        <FontAwesomeIcon icon={faUserCheck} />
+                      </ListItemIcon>
+                      Set User Type
+                    </MenuItem>
+                  </>
                 ),
               ]}
             />
           </CCardBody>
         </CCard>
       </CCol>
+
+      {/* Add new Data */}
+      <CModal
+        alignment="center"
+        visible={newDataFormModalVisible}
+        onClose={() => setNewDataFormModalVisible(false)}
+        backdrop="static"
+        keyboard={false}
+        size="md"
+      >
+        <CModalHeader>
+          <CModalTitle>Set User Role Type</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <p className="text-small-emphasis">
+            Note:{' '}
+            <strong>
+              <span className="text-danger">*</span> is required
+            </strong>
+          </p>
+          <CForm
+            className="row g-3 needs-validation"
+            noValidate
+            validated={validated}
+            onSubmit={handleSetUserType}
+          >
+            <CCol md={12}>
+              <CFormSelect
+                feedbackInvalid="User's Role Type is required"
+                id="role-type"
+                label={
+                  <>
+                    User&apos;s Role Type
+                    <span className="text-warning">
+                      <strong>*</strong>
+                    </span>
+                  </>
+                }
+                name="role_type"
+                value={formData.role_type}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Choose...</option>
+                <option value="User">User</option>
+                <option value="Admin">Admin</option>
+                <option value="SuperAdmin">Super Admin</option>
+              </CFormSelect>
+            </CCol>
+            <hr />
+            <CCol xs={12}>
+              <CButton color="primary" type="submit" className="float-end">
+                Submit
+              </CButton>
+            </CCol>
+          </CForm>
+        </CModalBody>
+      </CModal>
     </CRow>
   )
 }
