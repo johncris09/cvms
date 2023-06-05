@@ -44,7 +44,7 @@ import pdfFonts from 'pdfmake/build/vfs_fonts'
 pdfMake.vfs = pdfFonts.pdfMake.vfs
 const MySwal = withReactContent(Swal)
 
-const Anti_rabies_vaccination = () => {
+const Anti_rabies_vaccination = ({ roleType }) => {
   const _table = 'anti_rabies_vaccination'
 
   const timestamp = serverTimestamp()
@@ -687,131 +687,169 @@ const Anti_rabies_vaccination = () => {
         <CCard className="mb-4">
           <CCardHeader>
             <strong>Anti Rabies Vaccination</strong>
-            <CButton color="success" variant="outline" className="float-end" onClick={handleReport}>
-              <FontAwesomeIcon icon={faFilePdf} /> Generate Report
-            </CButton>
-            <CButton
-              color="primary"
-              variant="outline"
-              className="float-end mx-1"
-              onClick={handleAdd}
-            >
-              <FontAwesomeIcon icon={faPlusCircle} /> Add New Data
-            </CButton>
+            {roleType !== 'User' && (
+              <>
+                <CButton
+                  color="success"
+                  variant="outline"
+                  className="float-end"
+                  onClick={handleReport}
+                >
+                  <FontAwesomeIcon icon={faFilePdf} /> Generate Report
+                </CButton>
+                <CButton
+                  color="primary"
+                  variant="outline"
+                  className="float-end mx-1"
+                  onClick={handleAdd}
+                >
+                  <FontAwesomeIcon icon={faPlusCircle} /> Add New Data
+                </CButton>
+              </>
+            )}
           </CCardHeader>
           <CCardBody>
             <>
-              <MaterialReactTable
-                columns={columns}
-                data={data}
-                muiTablePaperProps={{
-                  elevation: 0,
-                  sx: {
-                    borderRadius: '0',
-                    border: '1px dashed #e0e0e0',
-                  },
-                }}
-                muiTableBodyProps={{
-                  sx: (theme) => ({
-                    '& tr:nth-of-type(odd)': {
-                      backgroundColor: darken(theme.palette.background.default, 0.05),
+              {roleType !== 'User' && (
+                <MaterialReactTable
+                  columns={columns}
+                  data={data}
+                  muiTablePaperProps={{
+                    elevation: 0,
+                    sx: {
+                      borderRadius: '0',
+                      border: '1px dashed #e0e0e0',
                     },
-                  }),
-                }}
-                enableColumnFilterModes
-                enableColumnOrdering
-                enableGrouping
-                enablePinning
-                enableRowActions
-                enableColumnResizing
-                initialState={{ density: 'compact' }}
-                positionToolbarAlertBanner="bottom"
-                enableRowSelection
-                renderRowActionMenuItems={({ closeMenu, row }) => [
-                  <MenuItem
-                    key={0}
-                    onClick={async () => {
-                      closeMenu()
+                  }}
+                  muiTableBodyProps={{
+                    sx: (theme) => ({
+                      '& tr:nth-of-type(odd)': {
+                        backgroundColor: darken(theme.palette.background.default, 0.05),
+                      },
+                    }),
+                  }}
+                  enableColumnFilterModes
+                  enableColumnOrdering
+                  enableGrouping
+                  enablePinning
+                  enableRowActions
+                  enableColumnResizing
+                  initialState={{ density: 'compact' }}
+                  positionToolbarAlertBanner="bottom"
+                  enableRowSelection
+                  renderRowActionMenuItems={({ closeMenu, row }) => [
+                    <MenuItem
+                      key={0}
+                      onClick={async () => {
+                        closeMenu()
 
-                      const petOwnersRef = ref(database, _table)
-                      const petOwnerSnapshot = await get(child(petOwnersRef, row.original.id))
+                        const petOwnersRef = ref(database, _table)
+                        const petOwnerSnapshot = await get(child(petOwnersRef, row.original.id))
 
-                      if (petOwnerSnapshot.exists()) {
-                        // Pet owner data found
-                        const petOwnerData = petOwnerSnapshot.val()
+                        if (petOwnerSnapshot.exists()) {
+                          // Pet owner data found
+                          const petOwnerData = petOwnerSnapshot.val()
 
-                        setFormData({
-                          date_vaccinated: petOwnerData.date_vaccinated,
-                          vaccine_type: petOwnerData.vaccine_type,
-                          owner_name: petOwnerData.owner_name,
-                          pet_name: petOwnerData.pet_name,
-                          color: petOwnerData.color,
-                          sex: petOwnerData.sex,
-                          species: petOwnerData.species,
-                          address: petOwnerData.address,
-                          neutered: petOwnerData.neutered,
-                          pet_birthdate: petOwnerData.pet_birthdate,
-                        })
+                          setFormData({
+                            date_vaccinated: petOwnerData.date_vaccinated,
+                            vaccine_type: petOwnerData.vaccine_type,
+                            owner_name: petOwnerData.owner_name,
+                            pet_name: petOwnerData.pet_name,
+                            color: petOwnerData.color,
+                            sex: petOwnerData.sex,
+                            species: petOwnerData.species,
+                            address: petOwnerData.address,
+                            neutered: petOwnerData.neutered,
+                            pet_birthdate: petOwnerData.pet_birthdate,
+                          })
 
-                        setSelectedItemId(row.original.id) // Set the selected item ID
-                        setNewDataFormModalVisible(true)
-                        setEditMode(true)
-                      } else {
-                        // Pet owner data not found
-                        console.log('Pet owner not found')
-                      }
-                    }}
-                    sx={{ m: 0 }}
-                  >
-                    <ListItemIcon>
-                      <EditSharp />
-                    </ListItemIcon>
-                    Edit
-                  </MenuItem>,
-                  <MenuItem
-                    key={1}
-                    onClick={() => {
-                      closeMenu()
-                      Swal.fire({
-                        title: 'Are you sure?',
-                        text: "You won't be able to revert this!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, delete it!',
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          const itemRef = ref(database, `${_table}/${row.original.id}`)
-                          remove(itemRef)
-                          Swal.fire('Deleted!', 'Data has been deleted.', 'success')
+                          setSelectedItemId(row.original.id) // Set the selected item ID
+                          setNewDataFormModalVisible(true)
+                          setEditMode(true)
+                        } else {
+                          // Pet owner data not found
+                          console.log('Pet owner not found')
                         }
-                      })
-                    }}
-                    sx={{ m: 0 }}
-                  >
-                    <ListItemIcon>
-                      <DeleteOutline />
-                    </ListItemIcon>
-                    Delete
-                  </MenuItem>,
-                ]}
-                renderTopToolbarCustomActions={({ table }) => (
-                  <Box sx={{ display: 'flex', gap: '1rem', p: '0.5rem', flexWrap: 'wrap' }}>
-                    <CButton size="md" className="btn-info text-white" onClick={handleExportData}>
-                      <FontAwesomeIcon icon={faFileExcel} /> Export to Excel
-                    </CButton>
-                    <CButton
-                      disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
-                      //only export selected rows
-                      onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
-                      variant="outline"
+                      }}
+                      sx={{ m: 0 }}
                     >
-                      <FontAwesomeIcon icon={faFileExcel} /> Export Selected Rows
-                    </CButton>
-                  </Box>
-                )}
-              />
+                      <ListItemIcon>
+                        <EditSharp />
+                      </ListItemIcon>
+                      Edit
+                    </MenuItem>,
+                    <MenuItem
+                      key={1}
+                      onClick={() => {
+                        closeMenu()
+                        Swal.fire({
+                          title: 'Are you sure?',
+                          text: "You won't be able to revert this!",
+                          icon: 'warning',
+                          showCancelButton: true,
+                          confirmButtonColor: '#3085d6',
+                          cancelButtonColor: '#d33',
+                          confirmButtonText: 'Yes, delete it!',
+                        }).then((result) => {
+                          if (result.isConfirmed) {
+                            const itemRef = ref(database, `${_table}/${row.original.id}`)
+                            remove(itemRef)
+                            Swal.fire('Deleted!', 'Data has been deleted.', 'success')
+                          }
+                        })
+                      }}
+                      sx={{ m: 0 }}
+                    >
+                      <ListItemIcon>
+                        <DeleteOutline />
+                      </ListItemIcon>
+                      Delete
+                    </MenuItem>,
+                  ]}
+                  renderTopToolbarCustomActions={({ table }) => (
+                    <Box sx={{ display: 'flex', gap: '1rem', p: '0.5rem', flexWrap: 'wrap' }}>
+                      <CButton size="md" className="btn-info text-white" onClick={handleExportData}>
+                        <FontAwesomeIcon icon={faFileExcel} /> Export to Excel
+                      </CButton>
+                      <CButton
+                        disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+                        //only export selected rows
+                        onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
+                        variant="outline"
+                      >
+                        <FontAwesomeIcon icon={faFileExcel} /> Export Selected Rows
+                      </CButton>
+                    </Box>
+                  )}
+                />
+              )}
+              {roleType === 'User' && (
+                <MaterialReactTable
+                  columns={columns}
+                  data={data}
+                  muiTablePaperProps={{
+                    elevation: 0,
+                    sx: {
+                      borderRadius: '0',
+                      border: '1px dashed #e0e0e0',
+                    },
+                  }}
+                  muiTableBodyProps={{
+                    sx: (theme) => ({
+                      '& tr:nth-of-type(odd)': {
+                        backgroundColor: darken(theme.palette.background.default, 0.05),
+                      },
+                    }),
+                  }}
+                  enableColumnFilterModes
+                  enableColumnOrdering
+                  enableGrouping
+                  enablePinning
+                  enableColumnResizing
+                  initialState={{ density: 'compact' }}
+                  positionToolbarAlertBanner="bottom"
+                />
+              )}
             </>
           </CCardBody>
         </CCard>

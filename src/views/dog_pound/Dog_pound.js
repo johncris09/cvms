@@ -46,7 +46,7 @@ import Table from 'src/constant/Table'
 const MySwal = withReactContent(Swal)
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs
-const Pet_owner = () => {
+const Pet_owner = ({ roleType }) => {
   const _table = 'dog_pound'
   const [data, setData] = useState([])
   const [newDataFormModalVisible, setNewDataFormModalVisible] = useState(false)
@@ -552,134 +552,193 @@ const Pet_owner = () => {
     csvExporter.generateCsv(data)
   }
 
+  const renderCustomActions = (table) => {
+    if (roleType !== 'User') {
+      return (
+        <Box sx={{ display: 'flex', gap: '1rem', p: '0.5rem', flexWrap: 'wrap' }}>
+          <CButton size="md" className="btn-info text-white" onClick={handleExportData}>
+            <FontAwesomeIcon icon={faFileExcel} /> Export to Excel
+          </CButton>
+          <CButton
+            disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+            //only export selected rows
+            onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
+            variant="outline"
+          >
+            <FontAwesomeIcon icon={faFileExcel} /> Export Selected Rows
+          </CButton>
+        </Box>
+      )
+    }
+    return null // Return null if the user's role type is 'user' to hide the custom actions
+  }
+
   return (
     <CRow>
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
             <strong>Dog Pound</strong>
-            <CButton color="success" variant="outline" className="float-end" onClick={handleReport}>
-              <FontAwesomeIcon icon={faFilePdf} /> Generate Report
-            </CButton>
-            <CButton
-              color="primary"
-              variant="outline"
-              className="float-end mx-1"
-              onClick={handleAdd}
-            >
-              <FontAwesomeIcon icon={faPlusCircle} /> Add New Data
-            </CButton>
+            {roleType !== 'User' && (
+              <>
+                <CButton
+                  color="success"
+                  variant="outline"
+                  className="float-end"
+                  onClick={handleReport}
+                >
+                  <FontAwesomeIcon icon={faFilePdf} /> Generate Report
+                </CButton>
+                <CButton
+                  color="primary"
+                  variant="outline"
+                  className="float-end mx-1"
+                  onClick={handleAdd}
+                >
+                  <FontAwesomeIcon icon={faPlusCircle} /> Add New Data
+                </CButton>
+              </>
+            )}
           </CCardHeader>
           <CCardBody>
             <>
-              <MaterialReactTable
-                columns={columns}
-                data={data}
-                muiTablePaperProps={{
-                  elevation: 0,
-                  sx: {
-                    borderRadius: '0',
-                    border: '1px dashed #e0e0e0',
-                  },
-                }}
-                muiTableBodyProps={{
-                  sx: (theme) => ({
-                    '& tr:nth-of-type(odd)': {
-                      backgroundColor: darken(theme.palette.background.default, 0.05),
+              {roleType !== 'User' && (
+                <MaterialReactTable
+                  columns={columns}
+                  data={data}
+                  muiTablePaperProps={{
+                    elevation: 0,
+                    sx: {
+                      borderRadius: '0',
+                      border: '1px dashed #e0e0e0',
                     },
-                  }),
-                }}
-                enableColumnFilterModes
-                enableColumnOrdering
-                enableGrouping
-                enablePinning
-                enableRowActions
-                enableColumnResizing
-                initialState={{ density: 'compact' }}
-                positionToolbarAlertBanner="bottom"
-                enableRowSelection
-                renderRowActionMenuItems={({ closeMenu, row }) => [
-                  <MenuItem
-                    key={0}
-                    onClick={async () => {
-                      closeMenu()
+                  }}
+                  muiTableBodyProps={{
+                    sx: (theme) => ({
+                      '& tr:nth-of-type(odd)': {
+                        backgroundColor: darken(theme.palette.background.default, 0.05),
+                      },
+                    }),
+                  }}
+                  enableColumnFilterModes
+                  enableColumnOrdering
+                  enableGrouping
+                  enablePinning
+                  enableRowActions
+                  enableColumnResizing
+                  initialState={{ density: 'compact' }}
+                  positionToolbarAlertBanner="bottom"
+                  enableRowSelection
+                  renderRowActionMenuItems={({ closeMenu, row }) => [
+                    <MenuItem
+                      key={0}
+                      onClick={async () => {
+                        closeMenu()
 
-                      const dogPoundsRef = ref(database, _table)
-                      const dogPoundSnapshot = await get(child(dogPoundsRef, row.original.id))
+                        const dogPoundsRef = ref(database, _table)
+                        const dogPoundSnapshot = await get(child(dogPoundsRef, row.original.id))
 
-                      if (dogPoundSnapshot.exists()) {
-                        // Dog Pound data found
-                        const dogPoundData = dogPoundSnapshot.val()
-                        setFormData({
-                          or_number: dogPoundData.or_number,
-                          date: dogPoundData.date,
-                          owner_name: dogPoundData.owner_name,
-                          pet_name: dogPoundData.pet_name,
-                          color: dogPoundData.color,
-                          sex: dogPoundData.sex,
-                          size: dogPoundData.size,
-                          address: dogPoundData.address,
-                        })
+                        if (dogPoundSnapshot.exists()) {
+                          // Dog Pound data found
+                          const dogPoundData = dogPoundSnapshot.val()
+                          setFormData({
+                            or_number: dogPoundData.or_number,
+                            date: dogPoundData.date,
+                            owner_name: dogPoundData.owner_name,
+                            pet_name: dogPoundData.pet_name,
+                            color: dogPoundData.color,
+                            sex: dogPoundData.sex,
+                            size: dogPoundData.size,
+                            address: dogPoundData.address,
+                          })
 
-                        setSelectedItemId(row.original.id) // Set the selected item ID
-                        setNewDataFormModalVisible(true)
-                        setEditMode(true)
-                      } else {
-                        // Pet owner data not found
-                        console.log('Pet owner not found')
-                      }
-                    }}
-                    sx={{ m: 0 }}
-                  >
-                    <ListItemIcon>
-                      <EditSharp />
-                    </ListItemIcon>
-                    Edit
-                  </MenuItem>,
-                  <MenuItem
-                    key={1}
-                    onClick={() => {
-                      closeMenu()
-                      Swal.fire({
-                        title: 'Are you sure?',
-                        text: "You won't be able to revert this!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, delete it!',
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          const itemRef = ref(database, `${_table}/${row.original.id}`)
-                          remove(itemRef)
-                          Swal.fire('Deleted!', 'Data has been deleted.', 'success')
+                          setSelectedItemId(row.original.id) // Set the selected item ID
+                          setNewDataFormModalVisible(true)
+                          setEditMode(true)
+                        } else {
+                          // Pet owner data not found
+                          console.log('Pet owner not found')
                         }
-                      })
-                    }}
-                    sx={{ m: 0 }}
-                  >
-                    <ListItemIcon>
-                      <DeleteOutline />
-                    </ListItemIcon>
-                    Delete
-                  </MenuItem>,
-                ]}
-                renderTopToolbarCustomActions={({ table }) => (
-                  <Box sx={{ display: 'flex', gap: '1rem', p: '0.5rem', flexWrap: 'wrap' }}>
-                    <CButton size="md" className="btn-info text-white" onClick={handleExportData}>
-                      <FontAwesomeIcon icon={faFileExcel} /> Export to Excel
-                    </CButton>
-                    <CButton
-                      disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
-                      //only export selected rows
-                      onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
-                      variant="outline"
+                      }}
+                      sx={{ m: 0 }}
                     >
-                      <FontAwesomeIcon icon={faFileExcel} /> Export Selected Rows
-                    </CButton>
-                  </Box>
-                )}
-              />
+                      <ListItemIcon>
+                        <EditSharp />
+                      </ListItemIcon>
+                      Edit
+                    </MenuItem>,
+                    <MenuItem
+                      key={1}
+                      onClick={() => {
+                        closeMenu()
+                        Swal.fire({
+                          title: 'Are you sure?',
+                          text: "You won't be able to revert this!",
+                          icon: 'warning',
+                          showCancelButton: true,
+                          confirmButtonColor: '#3085d6',
+                          cancelButtonColor: '#d33',
+                          confirmButtonText: 'Yes, delete it!',
+                        }).then((result) => {
+                          if (result.isConfirmed) {
+                            const itemRef = ref(database, `${_table}/${row.original.id}`)
+                            remove(itemRef)
+                            Swal.fire('Deleted!', 'Data has been deleted.', 'success')
+                          }
+                        })
+                      }}
+                      sx={{ m: 0 }}
+                    >
+                      <ListItemIcon>
+                        <DeleteOutline />
+                      </ListItemIcon>
+                      Delete
+                    </MenuItem>,
+                  ]}
+                  renderTopToolbarCustomActions={({ table }) => (
+                    <Box sx={{ display: 'flex', gap: '1rem', p: '0.5rem', flexWrap: 'wrap' }}>
+                      <CButton size="md" className="btn-info text-white" onClick={handleExportData}>
+                        <FontAwesomeIcon icon={faFileExcel} /> Export to Excel
+                      </CButton>
+                      <CButton
+                        disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+                        //only export selected rows
+                        onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
+                        variant="outline"
+                      >
+                        <FontAwesomeIcon icon={faFileExcel} /> Export Selected Rows
+                      </CButton>
+                    </Box>
+                  )}
+                />
+              )}
+              {roleType === 'User' && (
+                <MaterialReactTable
+                  columns={columns}
+                  data={data}
+                  muiTablePaperProps={{
+                    elevation: 0,
+                    sx: {
+                      borderRadius: '0',
+                      border: '1px dashed #e0e0e0',
+                    },
+                  }}
+                  muiTableBodyProps={{
+                    sx: (theme) => ({
+                      '& tr:nth-of-type(odd)': {
+                        backgroundColor: darken(theme.palette.background.default, 0.05),
+                      },
+                    }),
+                  }}
+                  enableColumnFilterModes
+                  enableColumnOrdering
+                  enableGrouping
+                  enablePinning
+                  enableColumnResizing
+                  initialState={{ density: 'compact' }}
+                  positionToolbarAlertBanner="bottom"
+                />
+              )}
             </>
           </CCardBody>
         </CCard>

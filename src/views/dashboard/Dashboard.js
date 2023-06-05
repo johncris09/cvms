@@ -33,7 +33,7 @@ import {
   ref,
 } from '../../firebaseConfig'
 
-const Dashboard = () => {
+const Dashboard = ({ roleType }) => {
   const [status, setStatus] = useState(null)
   const [email, setEmail] = useState(null)
   const [dogPoundData, setDogPoundData] = useState([])

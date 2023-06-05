@@ -6,6 +6,7 @@ const DefaultLayout = () => {
   const [visible, setVisible] = useState(false)
   const [user, setUser] = useState(null)
   const [status, setStatus] = useState(null)
+  const [userRoleType, setUserRoleType] = useState(null)
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       if (currentUser) {
@@ -18,6 +19,7 @@ const DefaultLayout = () => {
           if (userData) {
             const userId = Object.keys(userData)[0]
             setStatus(userData[userId].status)
+            setUserRoleType(userData[userId].roleType)
           }
         })
       } else {
@@ -38,11 +40,11 @@ const DefaultLayout = () => {
         <div>Pending Approval</div>
       ) : (
         <>
-          <AppSidebar />
+          <AppSidebar userRoleType={userRoleType} />
           <div className="wrapper d-flex flex-column min-vh-100 bg-light">
             <AppHeader />
             <div className="body flex-grow-1 px-3">
-              <AppContent />
+              <AppContent userRoleType={userRoleType} />
             </div>
             <AppFooter />
           </div>

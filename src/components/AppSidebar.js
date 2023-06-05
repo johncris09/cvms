@@ -11,7 +11,7 @@ import { auth, ref, database, onValue, query, orderByChild, equalTo } from './..
 // sidebar nav config
 import navigation from '../_nav'
 import logo from './../assets/images/logo.png'
-const AppSidebar = () => {
+const AppSidebar = ({ userRoleType }) => {
   const dispatch = useDispatch()
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
@@ -55,7 +55,9 @@ const AppSidebar = () => {
         <CIcon className="sidebar-brand-narrow" icon={sygnet} height={35} />
       </CSidebarBrand>
       <CSidebarNav>
-        <SimpleBar>{status === 'Approved' ? <AppSidebarNav items={navigation} /> : ''}</SimpleBar>
+        <SimpleBar>
+          {status === 'Approved' ? <AppSidebarNav items={navigation(userRoleType)} /> : ''}
+        </SimpleBar>
       </CSidebarNav>
       <CSidebarToggler
         className="d-none d-lg-flex"
