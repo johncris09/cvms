@@ -59,7 +59,7 @@ const Login = () => {
         const userId = Object.keys(users).find((key) => users[key].email === user.email)
         TrackUserActivity({
           userId: userId,
-          reference: 'Login',
+          reference: 'Users',
           referenceTable: 'users',
           activity: 'Login',
           value: { id: userId, email: user.email },
@@ -94,7 +94,7 @@ const Login = () => {
             const userId = Object.keys(users).find((key) => users[key].email === user.email)
             TrackUserActivity({
               userId: userId,
-              reference: 'Login',
+              reference: 'Users',
               referenceTable: 'users',
               activity: 'Login',
               value: { id: userId, email: user.email },
