@@ -55,6 +55,10 @@ import ConvertToTitleCase from 'src/helper/ConvertToTitleCase'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 import TrackUserActivity from 'src/helper/TrackUserActivity'
+import Draggable from 'react-draggable'
+import FormatDateTime from 'src/helper/FormatDateTime'
+import FormatDate from 'src/helper/FormatDate'
+import RequiredNote from 'src/helper/RequiredNote'
 pdfMake.vfs = pdfFonts.pdfMake.vfs
 const MySwal = withReactContent(Swal)
 
@@ -70,6 +74,7 @@ const Deworming = ({ roleType, userId }) => {
   const [speciesOptions, setSpeciesOptions] = useState([])
   const [medicationOptions, setMedicationOptions] = useState([])
   const [currentYear, setCurrentYear] = useState()
+  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
   const [formData, setFormData] = useState({
     date_deworming: '',
     address: '',
@@ -149,21 +154,6 @@ const Deworming = ({ roleType, userId }) => {
               .map(([unit, value]) => `${value} ${unit}`)
               .join(' + ')
 
-            const date = new Date(item.timestamp)
-            const formattedDate = date.toLocaleDateString('en-US', {
-              month: '2-digit',
-              day: '2-digit',
-              year: 'numeric',
-            })
-
-            const formattedTime = date.toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            })
-            const _date = formattedDate === 'Invalid Date' ? '' : formattedDate
-            const _time = formattedTime === 'Invalid Date' ? '' : formattedTime
-
             let sexText =
               (item.female != 0 ? item.female + ' F' : '') +
               (item.female > 0 && item.male > 0 ? ' and ' : '') +
@@ -174,7 +164,7 @@ const Deworming = ({ roleType, userId }) => {
               address: item.address,
               date_deworming: item.date_deworming,
               farmer_name: item.farmer_name,
-              created_at: _date + ' ' + _time,
+              created_at: FormatDateTime(item.timestamp),
               species: speciesObject ? speciesObject.name : '',
               head_number: item.head_number,
               sex: sexText,
@@ -324,21 +314,6 @@ const Deworming = ({ roleType, userId }) => {
               .map(([unit, value]) => `${value} ${unit}`)
               .join(' + ')
 
-            const date = new Date(item.timestamp)
-            const formattedDate = date.toLocaleDateString('en-US', {
-              month: '2-digit',
-              day: '2-digit',
-              year: 'numeric',
-            })
-
-            const formattedTime = date.toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            })
-            const _date = formattedDate === 'Invalid Date' ? '' : formattedDate
-            const _time = formattedTime === 'Invalid Date' ? '' : formattedTime
-
             let sexText =
               (item.female != 0 ? item.female + ' F' : '') +
               (item.female > 0 && item.male > 0 ? ' and ' : '') +
@@ -349,7 +324,6 @@ const Deworming = ({ roleType, userId }) => {
               address: item.address,
               date_deworming: item.date_deworming,
               farmer_name: item.farmer_name,
-              created_at: _date + ' ' + _time,
               species: speciesObject ? speciesObject.name : '',
               head_number: item.head_number,
               sex: sexText,
@@ -492,9 +466,9 @@ const Deworming = ({ roleType, userId }) => {
                           'Date: ',
                           {
                             text:
-                              formatDate(formReportData.start_date) +
+                              FormatDate(formReportData.start_date) +
                               ' - ' +
-                              formatDate(formReportData.end_date),
+                              FormatDate(formReportData.end_date),
                             bold: true,
                             decoration: 'underline',
                           },
@@ -937,379 +911,387 @@ const Deworming = ({ roleType, userId }) => {
       </CCol>
 
       {/* Add new Data */}
-      <CModal
-        alignment="center"
-        visible={newDataFormModalVisible}
-        onClose={() => setNewDataFormModalVisible(false)}
-        backdrop="static"
-        keyboard={false}
-        size="lg"
+
+      <Draggable
+        handle=".modal-header"
+        position={modalPosition}
+        onStop={(e, data) => {
+          setModalPosition({ x: data.x, y: data.y })
+        }}
       >
-        <CModalHeader>
-          <CModalTitle>{editMode ? 'Edit Data' : 'Add New Data'}</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <p className="text-small-emphasis">
-            Note:{' '}
-            <strong>
-              <span className="text-danger">*</span> is required
-            </strong>
-          </p>
-          <CForm
-            className="row g-3 needs-validation"
-            noValidate
-            validated={validated}
-            onSubmit={handleSubmit}
-          >
-            <CCol md={12}>
-              <CFormInput
-                type="text"
-                feedbackInvalid="Name of Farmer is required"
-                id="farmer-name"
-                label={
-                  <>
-                    Name of Farmer
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="farmer_name"
-                value={formData.farmer_name}
-                onChange={handleChange}
-                required
-              />
-            </CCol>
+        <CModal
+          alignment="center"
+          visible={newDataFormModalVisible}
+          onClose={() => setNewDataFormModalVisible(false)}
+          backdrop="static"
+          keyboard={false}
+          size="lg"
+        >
+          <CModalHeader>
+            <CModalTitle>{editMode ? 'Edit Data' : 'Add New Data'}</CModalTitle>
+          </CModalHeader>
+          <CModalBody>
+            <RequiredNote />
+            <CForm
+              className="row g-3 needs-validation"
+              noValidate
+              validated={validated}
+              onSubmit={handleSubmit}
+            >
+              <CCol md={12}>
+                <CFormInput
+                  type="text"
+                  feedbackInvalid="Name of Farmer is required"
+                  id="farmer-name"
+                  label={
+                    <>
+                      Name of Farmer
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="farmer_name"
+                  value={formData.farmer_name}
+                  onChange={handleChange}
+                  required
+                />
+              </CCol>
 
-            <CCol md={7}>
-              <CFormSelect
-                feedbackInvalid="Address is required"
-                id="address"
-                label={
-                  <>
-                    Address
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Choose...</option>
-                {barangayOptions.map((barangay) => (
-                  <option key={barangay.barangay} value={barangay.barangay}>
-                    {barangay.barangay}
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
-            <CCol md={5}>
-              <CFormInput
-                type="date"
-                feedbackInvalid="Date of Deworming is required"
-                id="date-deworming"
-                label={
-                  <>
-                    Date of Deworming
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="date_deworming"
-                value={formData.date_deworming}
-                onChange={handleChange}
-                required
-              />
-            </CCol>
+              <CCol md={7}>
+                <CFormSelect
+                  feedbackInvalid="Address is required"
+                  id="address"
+                  label={
+                    <>
+                      Address
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Choose...</option>
+                  {barangayOptions.map((barangay) => (
+                    <option key={barangay.barangay} value={barangay.barangay}>
+                      {barangay.barangay}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+              <CCol md={5}>
+                <CFormInput
+                  type="date"
+                  feedbackInvalid="Date of Deworming is required"
+                  id="date-deworming"
+                  label={
+                    <>
+                      Date of Deworming
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="date_deworming"
+                  value={formData.date_deworming}
+                  onChange={handleChange}
+                  required
+                />
+              </CCol>
 
-            <CCol md={7}>
-              <CFormSelect
-                feedbackInvalid="Species is required"
-                id="species"
-                label={
-                  <>
-                    Species
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="species"
-                value={formData.species}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Choose...</option>
-                {speciesOptions.map((species) => (
-                  <option key={species.id} value={species.id}>
-                    {species.name}
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
-            <CCol md={5}>
-              <CFormInput
-                type="number"
-                feedbackInvalid="Number of Heads is required"
-                id="head-number"
-                label={
-                  <>
-                    Number of Heads
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="head_number"
-                value={formData.head_number}
-                onChange={handleChange}
-                required
-              />
-            </CCol>
-            <CCol md={6}>
-              <CFormInput
-                type="number"
-                min="1"
-                feedbackInvalid="Number of Female is required"
-                id="female-number"
-                label="Number of Female"
-                name="female"
-                value={formData.female}
-                onChange={handleChange}
-              />
-            </CCol>
-            <CCol md={6}>
-              <CFormInput
-                type="number"
-                min="1"
-                feedbackInvalid="Number of Male is required"
-                id="male-number"
-                label="Number of Male"
-                name="male"
-                value={formData.male}
-                onChange={handleChange}
-              />
-            </CCol>
-            <CCol md={12}>
-              <CFormSelect
-                feedbackInvalid="Treatment is required"
-                id="treatment"
-                label={
-                  <>
-                    Treatment
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="treatment"
-                value={formData.treatment}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Choose...</option>
-                {medicationOptions.map((medication) => (
-                  <option key={medication.id} value={medication.id}>
-                    {medication.medication}
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
+              <CCol md={7}>
+                <CFormSelect
+                  feedbackInvalid="Species is required"
+                  id="species"
+                  label={
+                    <>
+                      Species
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="species"
+                  value={formData.species}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Choose...</option>
+                  {speciesOptions.map((species) => (
+                    <option key={species.id} value={species.id}>
+                      {species.name}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+              <CCol md={5}>
+                <CFormInput
+                  type="number"
+                  feedbackInvalid="Number of Heads is required"
+                  id="head-number"
+                  label={
+                    <>
+                      Number of Heads
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="head_number"
+                  value={formData.head_number}
+                  onChange={handleChange}
+                  required
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormInput
+                  type="number"
+                  min="1"
+                  feedbackInvalid="Number of Female is required"
+                  id="female-number"
+                  label="Number of Female"
+                  name="female"
+                  value={formData.female}
+                  onChange={handleChange}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormInput
+                  type="number"
+                  min="1"
+                  feedbackInvalid="Number of Male is required"
+                  id="male-number"
+                  label="Number of Male"
+                  name="male"
+                  value={formData.male}
+                  onChange={handleChange}
+                />
+              </CCol>
+              <CCol md={12}>
+                <CFormSelect
+                  feedbackInvalid="Treatment is required"
+                  id="treatment"
+                  label={
+                    <>
+                      Treatment
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="treatment"
+                  value={formData.treatment}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Choose...</option>
+                  {medicationOptions.map((medication) => (
+                    <option key={medication.id} value={medication.id}>
+                      {medication.medication}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
 
-            {/* Dynamic Inputs */}
-            {formData.inputs.map((input) => {
-              if (input.id === 1) {
-                return (
-                  <CCol md={12} key={input.id}>
-                    <CFormLabel htmlFor="basic-url">
-                      Amount
-                      <CTooltip
-                        className="bg-info"
-                        content="Reminder: Please remember to separate the numbers and units of measurement when entering the input values. 
+              {/* Dynamic Inputs */}
+              {formData.inputs.map((input) => {
+                if (input.id === 1) {
+                  return (
+                    <CCol md={12} key={input.id}>
+                      <CFormLabel htmlFor="basic-url">
+                        Amount
+                        <CTooltip
+                          className="bg-info"
+                          content="Reminder: Please remember to separate the numbers and units of measurement when entering the input values. 
                         For example, enter 1 mg or 10 sachet with a space between the number and the unit. This will help ensure accurate calculations and prevent any issues during data processing."
-                        placement="right"
-                      >
-                        <sup>
-                          <FontAwesomeIcon className="text-info" size="lg" icon={faInfoCircle} />
-                        </sup>
-                      </CTooltip>
-                    </CFormLabel>
-                    <CInputGroup>
-                      <CFormInput
-                        type="text"
-                        name="input"
-                        value={input.value}
-                        onChange={(e) => handleInputChange(e, input.id - 1)}
-                      />
-                      <CTooltip content="Add Input" placement="top">
-                        <CButton
-                          type="button"
-                          color="primary"
-                          variant="outline"
-                          onClick={handleAddInput}
+                          placement="right"
                         >
-                          <FontAwesomeIcon size="lg" icon={faCirclePlus} />
-                        </CButton>
-                      </CTooltip>
-                    </CInputGroup>
-                  </CCol>
-                )
-              } else {
-                return (
-                  <CCol md={12} key={input.id}>
-                    <CFormLabel htmlFor="basic-url">Amount</CFormLabel>
-                    <CInputGroup>
-                      <CFormInput
-                        type="text"
-                        name="input"
-                        value={input.value}
-                        onChange={(e) => handleInputChange(e, input.id - 1)}
-                      />
-                      <CTooltip content="Remove Input" placement="top">
-                        <CButton
-                          type="button"
-                          color="danger"
-                          variant="outline"
-                          onClick={() => handleRemoveInput(input.id)}
-                        >
-                          <FontAwesomeIcon size="lg" icon={faTimesCircle} />
-                        </CButton>
-                      </CTooltip>
-                    </CInputGroup>
-                  </CCol>
-                )
-              }
-              return null
-            })}
+                          <sup>
+                            <FontAwesomeIcon className="text-info" size="lg" icon={faInfoCircle} />
+                          </sup>
+                        </CTooltip>
+                      </CFormLabel>
+                      <CInputGroup>
+                        <CFormInput
+                          type="text"
+                          name="input"
+                          value={input.value}
+                          onChange={(e) => handleInputChange(e, input.id - 1)}
+                        />
+                        <CTooltip content="Add Input" placement="top">
+                          <CButton
+                            type="button"
+                            color="primary"
+                            variant="outline"
+                            onClick={handleAddInput}
+                          >
+                            <FontAwesomeIcon size="lg" icon={faCirclePlus} />
+                          </CButton>
+                        </CTooltip>
+                      </CInputGroup>
+                    </CCol>
+                  )
+                } else {
+                  return (
+                    <CCol md={12} key={input.id}>
+                      <CFormLabel htmlFor="basic-url">Amount</CFormLabel>
+                      <CInputGroup>
+                        <CFormInput
+                          type="text"
+                          name="input"
+                          value={input.value}
+                          onChange={(e) => handleInputChange(e, input.id - 1)}
+                        />
+                        <CTooltip content="Remove Input" placement="top">
+                          <CButton
+                            type="button"
+                            color="danger"
+                            variant="outline"
+                            onClick={() => handleRemoveInput(input.id)}
+                          >
+                            <FontAwesomeIcon size="lg" icon={faTimesCircle} />
+                          </CButton>
+                        </CTooltip>
+                      </CInputGroup>
+                    </CCol>
+                  )
+                }
+                return null
+              })}
 
-            <hr />
-            <CCol xs={12}>
-              <CButton color="primary" type="submit" className="float-end">
-                {editMode ? 'Update' : 'Submit form'}
-              </CButton>
-            </CCol>
-          </CForm>
-        </CModalBody>
-      </CModal>
+              <hr />
+              <CCol xs={12}>
+                <CButton color="primary" type="submit" className="float-end">
+                  {editMode ? 'Update' : 'Submit form'}
+                </CButton>
+              </CCol>
+            </CForm>
+          </CModalBody>
+        </CModal>
+      </Draggable>
 
       {/* Report */}
-      <CModal
-        alignment="center"
-        visible={reportFormModalVisible}
-        onClose={() => setReportFormModalVisible(false)}
-        backdrop="static"
-        keyboard={false}
-        size="lg"
+
+      <Draggable
+        handle=".modal-header"
+        position={modalPosition}
+        onStop={(e, data) => {
+          setModalPosition({ x: data.x, y: data.y })
+        }}
       >
-        <CModalHeader>
-          <CModalTitle>Generate Report</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <p className="text-small-emphasis">
-            Note:{' '}
-            <strong>
-              <span className="text-danger">*</span> is required
-            </strong>
-          </p>
-          <CForm
-            className="row g-3 needs-validation"
-            noValidate
-            validated={validated}
-            onSubmit={handleReportSubmit}
-          >
-            <CCol md={6}>
-              <CFormInput
-                type="date"
-                feedbackInvalid="OR # is required"
-                id="start-date"
-                label={
-                  <>
-                    Start Date
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="start_date"
-                value={formReportData.start_date}
-                onChange={handleReportChange}
-                required
-              />
-            </CCol>
-            <CCol md={6}>
-              <CFormInput
-                type="date"
-                feedbackInvalid="OR # is required"
-                id="end-date"
-                label={
-                  <>
-                    End Date
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="end_date"
-                value={formReportData.end_date}
-                onChange={handleReportChange}
-                required
-              />
-            </CCol>
-            <CCol md={12}>
-              <CFormSelect
-                id="address"
-                feedbackInvalid="Address is required"
-                label={
-                  <>
-                    Address
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="address"
-                value={formReportData.address}
-                onChange={handleReportChange}
-                required
-              >
-                <option value="">Choose...</option>
-                {barangayOptions.map((barangay) => (
-                  <option key={barangay.barangay} value={barangay.barangay}>
-                    {barangay.barangay}
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
-            <CCol md={12}>
-              <CFormSelect
-                feedbackInvalid="Species is required"
-                id="species"
-                label="Species"
-                name="species"
-                value={formReportData.species}
-                onChange={handleReportChange}
-              >
-                <option value="">Choose...</option>
-                {speciesOptions.map((species) => (
-                  <option key={species.id} value={species.id}>
-                    {species.name}
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
-            <hr />
-            <CCol xs={12}>
-              <CButton color="primary" type="submit" className="float-end">
-                <FontAwesomeIcon icon={faFilePdf} /> Generate Report
-              </CButton>
-            </CCol>
-          </CForm>
-        </CModalBody>
-      </CModal>
+        <CModal
+          alignment="center"
+          visible={reportFormModalVisible}
+          onClose={() => setReportFormModalVisible(false)}
+          backdrop="static"
+          keyboard={false}
+          size="lg"
+        >
+          <CModalHeader>
+            <CModalTitle>Generate Report</CModalTitle>
+          </CModalHeader>
+          <CModalBody>
+            <RequiredNote />
+            <CForm
+              className="row g-3 needs-validation"
+              noValidate
+              validated={validated}
+              onSubmit={handleReportSubmit}
+            >
+              <CCol md={6}>
+                <CFormInput
+                  type="date"
+                  feedbackInvalid="OR # is required"
+                  id="start-date"
+                  label={
+                    <>
+                      Start Date
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="start_date"
+                  value={formReportData.start_date}
+                  onChange={handleReportChange}
+                  required
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormInput
+                  type="date"
+                  feedbackInvalid="OR # is required"
+                  id="end-date"
+                  label={
+                    <>
+                      End Date
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="end_date"
+                  value={formReportData.end_date}
+                  onChange={handleReportChange}
+                  required
+                />
+              </CCol>
+              <CCol md={12}>
+                <CFormSelect
+                  id="address"
+                  feedbackInvalid="Address is required"
+                  label={
+                    <>
+                      Address
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="address"
+                  value={formReportData.address}
+                  onChange={handleReportChange}
+                  required
+                >
+                  <option value="">Choose...</option>
+                  {barangayOptions.map((barangay) => (
+                    <option key={barangay.barangay} value={barangay.barangay}>
+                      {barangay.barangay}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+              <CCol md={12}>
+                <CFormSelect
+                  feedbackInvalid="Species is required"
+                  id="species"
+                  label="Species"
+                  name="species"
+                  value={formReportData.species}
+                  onChange={handleReportChange}
+                >
+                  <option value="">Choose...</option>
+                  {speciesOptions.map((species) => (
+                    <option key={species.id} value={species.id}>
+                      {species.name}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+              <hr />
+              <CCol xs={12}>
+                <CButton color="primary" type="submit" className="float-end">
+                  <FontAwesomeIcon icon={faFilePdf} /> Generate Report
+                </CButton>
+              </CCol>
+            </CForm>
+          </CModalBody>
+        </CModal>
+      </Draggable>
     </CRow>
   )
 }

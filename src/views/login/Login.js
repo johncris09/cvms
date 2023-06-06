@@ -13,6 +13,7 @@ import {
   set,
   signInWithPopup,
 } from '../../firebaseConfig'
+import TrackUserActivity from 'src/helper/TrackUserActivity'
 
 const Login = () => {
   const timestamp = serverTimestamp()
@@ -51,6 +52,19 @@ const Login = () => {
       if (!emailExists) {
         const newUserRef = push(usersRef)
         await set(newUserRef, userData)
+
+        const fetchUsersRef = ref(database, 'users')
+        const usersSnapshot = await get(fetchUsersRef)
+        const users = usersSnapshot.val()
+        const userId = Object.keys(users).find((key) => users[key].email === user.email)
+        TrackUserActivity({
+          userId: userId,
+          reference: 'Login',
+          referenceTable: 'users',
+          activity: 'Login',
+          value: { id: userId, email: user.email },
+        })
+
         console.log('User data saved successfully')
       } else {
         console.log('User already exists')
@@ -65,13 +79,26 @@ const Login = () => {
   const handleGoogleAuth = async () => {
     try {
       const result = await signInWithPopup(auth, googleAuthProvider)
+
       const { user } = result
 
       checkUserExists(user.email)
-        .then((exists) => {
+        .then(async (exists) => {
           if (exists) {
-            console.log('User exists')
             // Perform actions for existing user
+            console.log('User exists')
+
+            const usersRef = ref(database, 'users')
+            const usersSnapshot = await get(usersRef)
+            const users = usersSnapshot.val()
+            const userId = Object.keys(users).find((key) => users[key].email === user.email)
+            TrackUserActivity({
+              userId: userId,
+              reference: 'Login',
+              referenceTable: 'users',
+              activity: 'Login',
+              value: { id: userId, email: user.email },
+            })
           } else {
             console.log('User does not exist')
             // Perform actions for non-existing user

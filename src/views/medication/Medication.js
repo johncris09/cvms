@@ -44,6 +44,9 @@ import pdfFonts from 'pdfmake/build/vfs_fonts'
 
 import Table from 'src/constant/Table'
 import TrackUserActivity from 'src/helper/TrackUserActivity'
+import Draggable from 'react-draggable'
+import FormatDateTime from 'src/helper/FormatDateTime'
+import RequiredNote from 'src/helper/RequiredNote'
 const MySwal = withReactContent(Swal)
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs
@@ -55,6 +58,7 @@ const Medication = ({ userId }) => {
   const [editMode, setEditMode] = useState(false)
   const [currentYear, setCurrentYear] = useState()
   const [selectedItemId, setSelectedItemId] = useState(null)
+  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
   const [formData, setFormData] = useState({
     medication: '',
   })
@@ -84,24 +88,10 @@ const Medication = ({ userId }) => {
           // Sort the filtered data by medication
           filteredData.sort((a, b) => a.medication.localeCompare(b.medication))
           const processedData = filteredData.map((item) => {
-            const date = new Date(item.timestamp)
-            const formattedDate = date.toLocaleDateString('en-US', {
-              month: '2-digit',
-              day: '2-digit',
-              year: 'numeric',
-            })
-
-            const formattedTime = date.toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            })
-            const _date = formattedDate == '' ? '' : formattedDate
-            const _time = formattedTime == '' ? '' : formattedTime
             return {
               id: item.id,
               medication: item.medication,
-              created_at: _date + ' ' + _time,
+              created_at: FormatDateTime(item.timestamp),
             }
           })
 
@@ -317,58 +307,61 @@ const Medication = ({ userId }) => {
       </CCol>
 
       {/* Add New Data */}
-      <CModal
-        alignment="center"
-        visible={newDadtaFormModalVisible}
-        onClose={() => setNewDataFormModalVisible(false)}
-        backdrop="static"
-        keyboard={false}
-        size="md"
+      <Draggable
+        handle=".modal-header"
+        position={modalPosition}
+        onStop={(e, data) => {
+          setModalPosition({ x: data.x, y: data.y })
+        }}
       >
-        <CModalHeader>
-          <CModalTitle>{editMode ? 'Edit Data' : 'Add New Data'}</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <p className="text-small-emphasis">
-            Note:{' '}
-            <strong>
-              <span className="text-danger">*</span> is required
-            </strong>
-          </p>
-          <CForm
-            className="row g-3 needs-validation"
-            noValidate
-            validated={validated}
-            onSubmit={handleSubmit}
-          >
-            <CCol md={12}>
-              <CFormInput
-                type="text"
-                feedbackInvalid="Date is required"
-                id="date"
-                label={
-                  <>
-                    Name of Medication
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="medication"
-                value={formData.medication}
-                onChange={handleChange}
-                required
-              />
-            </CCol>
-            <hr />
-            <CCol xs={12}>
-              <CButton color="primary" type="submit" className="float-end">
-                {editMode ? 'Update' : 'Submit form'}
-              </CButton>
-            </CCol>
-          </CForm>
-        </CModalBody>
-      </CModal>
+        <CModal
+          alignment="center"
+          visible={newDadtaFormModalVisible}
+          onClose={() => setNewDataFormModalVisible(false)}
+          backdrop="static"
+          keyboard={false}
+          size="md"
+        >
+          <CModalHeader>
+            <CModalTitle>{editMode ? 'Edit Data' : 'Add New Data'}</CModalTitle>
+          </CModalHeader>
+          <CModalBody>
+            <RequiredNote />
+            <CForm
+              className="row g-3 needs-validation"
+              noValidate
+              validated={validated}
+              onSubmit={handleSubmit}
+            >
+              <CCol md={12}>
+                <CFormInput
+                  type="text"
+                  feedbackInvalid="Date is required"
+                  id="date"
+                  label={
+                    <>
+                      Name of Medication
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="medication"
+                  value={formData.medication}
+                  onChange={handleChange}
+                  required
+                />
+              </CCol>
+              <hr />
+              <CCol xs={12}>
+                <CButton color="primary" type="submit" className="float-end">
+                  {editMode ? 'Update' : 'Submit form'}
+                </CButton>
+              </CCol>
+            </CForm>
+          </CModalBody>
+        </CModal>
+      </Draggable>
     </CRow>
   )
 }

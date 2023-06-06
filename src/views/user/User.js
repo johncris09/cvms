@@ -21,6 +21,7 @@ import { Check, CheckBox, Close, PendingActions } from '@mui/icons-material'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import { child, database, get, onValue, ref, update } from '../../firebaseConfig'
+import RequiredNote from 'src/helper/RequiredNote'
 const MySwal = withReactContent(Swal)
 
 const User = () => {
@@ -357,12 +358,7 @@ const User = () => {
           <CModalTitle>Set User Role Type</CModalTitle>
         </CModalHeader>
         <CModalBody>
-          <p className="text-small-emphasis">
-            Note:{' '}
-            <strong>
-              <span className="text-danger">*</span> is required
-            </strong>
-          </p>
+          <RequiredNote />
           <CForm
             className="row g-3 needs-validation"
             noValidate

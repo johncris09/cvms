@@ -32,6 +32,7 @@ import {
   query,
   ref,
 } from '../../firebaseConfig'
+import RequiredNote from 'src/helper/RequiredNote'
 
 const Dashboard = ({ roleType }) => {
   const [status, setStatus] = useState(null)
@@ -519,12 +520,7 @@ const Dashboard = ({ roleType }) => {
                 <CModalTitle>Filter</CModalTitle>
               </CModalHeader>
               <CModalBody>
-                <p className="text-small-emphasis">
-                  Note:{' '}
-                  <strong>
-                    <span className="text-danger">*</span> is required
-                  </strong>
-                </p>
+                <RequiredNote />
                 <div className="d-grid gap-2 d-md-flex justify-content-md-end">
                   <CButton color="danger" variant="outline" onClick={handleDogPoundResetFilter}>
                     <FontAwesomeIcon icon={faCancel} /> Reset Filter
@@ -605,12 +601,7 @@ const Dashboard = ({ roleType }) => {
                 <CModalTitle>Filter</CModalTitle>
               </CModalHeader>
               <CModalBody>
-                <p className="text-small-emphasis">
-                  Note:{' '}
-                  <strong>
-                    <span className="text-danger">*</span> is required
-                  </strong>
-                </p>
+                <RequiredNote />
                 <div className="d-grid gap-2 d-md-flex justify-content-md-end">
                   <CButton color="danger" variant="outline" onClick={handleAntiRabiesResetFilter}>
                     <FontAwesomeIcon icon={faCancel} /> Reset Filter
@@ -718,12 +709,7 @@ const Dashboard = ({ roleType }) => {
                 <CModalTitle>Filter</CModalTitle>
               </CModalHeader>
               <CModalBody>
-                <p className="text-small-emphasis">
-                  Note:{' '}
-                  <strong>
-                    <span className="text-danger">*</span> is required
-                  </strong>
-                </p>
+                <RequiredNote />
                 <div className="d-grid gap-2 d-md-flex justify-content-md-end">
                   <CButton color="danger" variant="outline" onClick={handleDewormingResetFilter}>
                     <FontAwesomeIcon icon={faCancel} /> Reset Filter

@@ -42,6 +42,11 @@ import ConvertToTitleCase from 'src/helper/ConvertToTitleCase'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 import TrackUserActivity from 'src/helper/TrackUserActivity'
+import FormatDateTime from 'src/helper/FormatDateTime'
+import CalculateAge from 'src/helper/CalculateAge'
+import FormatDate from 'src/helper/FormatDate'
+import Draggable from 'react-draggable'
+import RequiredNote from 'src/helper/RequiredNote'
 pdfMake.vfs = pdfFonts.pdfMake.vfs
 const MySwal = withReactContent(Swal)
 
@@ -57,6 +62,7 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
   const [barangayOptions, setBarangayOptions] = useState([])
   const [speciesOptions, setSpeciesOptions] = useState([])
   const [currentYear, setCurrentYear] = useState()
+  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
   const [formData, setFormData] = useState({
     date_vaccinated: '',
     vaccine_type: '',
@@ -85,11 +91,6 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
 
     fetchData(_table, currentYear)
   }, [])
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    const options = { month: 'long', day: 'numeric', year: 'numeric' }
-    return date.toLocaleDateString('en-US', options)
-  }
 
   const fetchData = async (table, currentYear) => {
     try {
@@ -116,26 +117,6 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
             const speciesSnapshot = await get(ref(database, `anti_rabies_species/${species}`))
             const speciesObject = speciesSnapshot.val()
 
-            const date = new Date(item.timestamp)
-            const formattedDate = date.toLocaleDateString('en-US', {
-              month: '2-digit',
-              day: '2-digit',
-              year: 'numeric',
-            })
-
-            const formattedTime = date.toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            })
-            const _date = formattedDate === 'Invalid Date' ? '' : formattedDate
-            const _time = formattedTime === 'Invalid Date' ? '' : formattedTime
-
-            const today = new Date()
-            const birthdate = new Date(item.pet_birthdate)
-            const ageTime = today - birthdate
-            const age = Math.floor(ageTime / (1000 * 60 * 60 * 24 * 365)) // Calculating age in years
-
             return {
               id: item.id,
               owner_name: item.owner_name,
@@ -143,13 +124,8 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
               color: item.color,
               sex: item.sex,
               address: item.address,
-              created_at: _date + ' ' + _time,
-              age:
-                age === 1
-                  ? age.toString() + ' year old'
-                  : age === 0
-                  ? 'Less than 1 year old'
-                  : age.toString() + ' years old',
+              created_at: FormatDateTime(item.timestamp),
+              age: CalculateAge(item.pet_birthdate),
               birthdate: item.pet_birthdate,
               neutered: item.neutered,
               species: speciesObject ? speciesObject.name : '',
@@ -278,26 +254,6 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
             const speciesSnapshot = await get(ref(database, `anti_rabies_species/${species}`))
             const speciesObject = speciesSnapshot.val()
 
-            const date = new Date(item.timestamp)
-            const formattedDate = date.toLocaleDateString('en-US', {
-              month: '2-digit',
-              day: '2-digit',
-              year: 'numeric',
-            })
-
-            const formattedTime = date.toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            })
-            const _date = formattedDate === 'Invalid Date' ? '' : formattedDate
-            const _time = formattedTime === 'Invalid Date' ? '' : formattedTime
-
-            const today = new Date()
-            const birthdate = new Date(item.pet_birthdate)
-            const ageTime = today - birthdate
-            const age = Math.floor(ageTime / (1000 * 60 * 60 * 24 * 365)) // Calculating age in years
-
             return {
               id: item.id,
               owner_name: item.owner_name,
@@ -305,13 +261,7 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
               color: item.color,
               sex: item.sex,
               address: item.address,
-              created_at: _date + ' ' + _time,
-              age:
-                age === 1
-                  ? age.toString() + ' year old'
-                  : age === 0
-                  ? 'Less than 1 year old'
-                  : age.toString() + ' years old',
+              age: CalculateAge(item.pet_birthdate),
               birthdate: item.pet_birthdate,
               neutered: item.neutered,
               species: speciesObject ? speciesObject.name : '',
@@ -473,9 +423,9 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
                           'Date: ',
                           {
                             text:
-                              formatDate(formReportData.start_date) +
+                              FormatDate(formReportData.start_date) +
                               ' - ' +
-                              formatDate(formReportData.end_date),
+                              FormatDate(formReportData.end_date),
                             bold: true,
                             decoration: 'underline',
                           },
@@ -729,7 +679,7 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <strong>Anti Rabies Vaccination</strong>
+            <strong>Anti-Rabies Vaccination</strong>
             {roleType !== 'User' && (
               <>
                 <CButton
@@ -910,365 +860,372 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
       </CCol>
 
       {/* Add new Data */}
-      <CModal
-        alignment="center"
-        visible={newDataFormModalVisible}
-        onClose={() => setNewDataFormModalVisible(false)}
-        backdrop="static"
-        keyboard={false}
-        size="lg"
+
+      <Draggable
+        handle=".modal-header"
+        position={modalPosition}
+        onStop={(e, data) => {
+          setModalPosition({ x: data.x, y: data.y })
+        }}
       >
-        <CModalHeader>
-          <CModalTitle>{editMode ? 'Edit Data' : 'Add New Data'}</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <p className="text-small-emphasis">
-            Note:{' '}
-            <strong>
-              <span className="text-danger">*</span> is required
-            </strong>
-          </p>
-          <CForm
-            className="row g-3 needs-validation"
-            noValidate
-            validated={validated}
-            onSubmit={handleSubmit}
-          >
-            <CCol md={6}>
-              <CFormInput
-                type="date"
-                feedbackInvalid="Date of Vaccination is required"
-                id="owner-number"
-                label={
-                  <>
-                    Date of Vaccination
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="date_vaccinated"
-                value={formData.date_vaccinated}
-                onChange={handleChange}
-                required
-              />
-            </CCol>
+        <CModal
+          alignment="center"
+          visible={newDataFormModalVisible}
+          onClose={() => setNewDataFormModalVisible(false)}
+          backdrop="static"
+          keyboard={false}
+          size="lg"
+        >
+          <CModalHeader>
+            <CModalTitle>{editMode ? 'Edit Data' : 'Add New Data'}</CModalTitle>
+          </CModalHeader>
+          <CModalBody>
+            <RequiredNote />
+            <CForm
+              className="row g-3 needs-validation"
+              noValidate
+              validated={validated}
+              onSubmit={handleSubmit}
+            >
+              <CCol md={6}>
+                <CFormInput
+                  type="date"
+                  feedbackInvalid="Date of Vaccination is required"
+                  id="owner-number"
+                  label={
+                    <>
+                      Date of Vaccination
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="date_vaccinated"
+                  value={formData.date_vaccinated}
+                  onChange={handleChange}
+                  required
+                />
+              </CCol>
 
-            <CCol md={6}>
-              <CFormInput
-                type="text"
-                feedbackInvalid="Vaccine Type is required"
-                id="pet-name"
-                label={
-                  <>
-                    Vaccine Type
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="vaccine_type"
-                value={formData.vaccine_type}
-                onChange={handleChange}
-                required
-              />
-            </CCol>
+              <CCol md={6}>
+                <CFormInput
+                  type="text"
+                  feedbackInvalid="Vaccine Type is required"
+                  id="pet-name"
+                  label={
+                    <>
+                      Vaccine Type
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="vaccine_type"
+                  value={formData.vaccine_type}
+                  onChange={handleChange}
+                  required
+                />
+              </CCol>
 
-            <CCol md={6}>
-              <CFormInput
-                type="text"
-                feedbackInvalid="Name of the Owner is required"
-                id="owner-name"
-                label={
-                  <>
-                    Name of the Owner
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="owner_name"
-                value={formData.owner_name}
-                onChange={handleChange}
-                required
-              />
-            </CCol>
-            <CCol md={6}>
-              <CFormInput
-                type="text"
-                feedbackInvalid="Pet's Name is required"
-                id="pet-name"
-                label={
-                  <>
-                    Pet&apos;s Name
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="pet_name"
-                value={formData.pet_name}
-                onChange={handleChange}
-                required
-              />
-            </CCol>
+              <CCol md={6}>
+                <CFormInput
+                  type="text"
+                  feedbackInvalid="Name of the Owner is required"
+                  id="owner-name"
+                  label={
+                    <>
+                      Name of the Owner
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="owner_name"
+                  value={formData.owner_name}
+                  onChange={handleChange}
+                  required
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormInput
+                  type="text"
+                  feedbackInvalid="Pet's Name is required"
+                  id="pet-name"
+                  label={
+                    <>
+                      Pet&apos;s Name
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="pet_name"
+                  value={formData.pet_name}
+                  onChange={handleChange}
+                  required
+                />
+              </CCol>
 
-            <CCol md={12}>
-              <CFormSelect
-                feedbackInvalid="Address is required"
-                id="address"
-                label={
-                  <>
-                    Address
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Choose...</option>
-                {barangayOptions.map((barangay) => (
-                  <option key={barangay.barangay} value={barangay.barangay}>
-                    {barangay.barangay}
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
-            <CCol md={4}>
-              <CFormInput
-                type="date"
-                feedbackInvalid="Pet's Birthdate is required"
-                id="pet-birthdate"
-                label={
-                  <>
-                    Pet&apos;s Birthdate
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="pet_birthdate"
-                value={formData.pet_birthdate}
-                onChange={handleChange}
-                required
-              />
-            </CCol>
-            <CCol md={4}>
-              <CFormSelect
-                feedbackInvalid="Sex is required"
-                id="sex"
-                label={
-                  <>
-                    Sex
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="sex"
-                value={formData.sex}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Choose...</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </CFormSelect>
-            </CCol>
-            <CCol md={4}>
-              <CFormInput
-                type="text"
-                feedbackInvalid="Color is required"
-                id="color"
-                label={
-                  <>
-                    Color
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="color"
-                value={formData.color}
-                onChange={handleChange}
-                required
-              />
-            </CCol>
-            <CCol md={6}>
-              <CFormSelect
-                feedbackInvalid="Species is required"
-                id="species"
-                label={
-                  <>
-                    Species
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="species"
-                value={formData.species}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Choose...</option>
-                {speciesOptions.map((species) => (
-                  <option key={species.id} value={species.id}>
-                    {species.name}
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
-            <CCol md={6}>
-              <CFormSelect
-                feedbackInvalid="Neutered is required"
-                id="neutered"
-                label={
-                  <>
-                    Neutered
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="neutered"
-                value={formData.neutered}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Choose...</option>
-                <option value="Y">Yes</option>
-                <option value="N">No</option>
-              </CFormSelect>
-            </CCol>
-            <hr />
-            <CCol xs={12}>
-              <CButton color="primary" type="submit" className="float-end">
-                {editMode ? 'Update' : 'Submit form'}
-              </CButton>
-            </CCol>
-          </CForm>
-        </CModalBody>
-      </CModal>
+              <CCol md={12}>
+                <CFormSelect
+                  feedbackInvalid="Address is required"
+                  id="address"
+                  label={
+                    <>
+                      Address
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Choose...</option>
+                  {barangayOptions.map((barangay) => (
+                    <option key={barangay.barangay} value={barangay.barangay}>
+                      {barangay.barangay}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+              <CCol md={4}>
+                <CFormInput
+                  type="date"
+                  feedbackInvalid="Pet's Birthdate is required"
+                  id="pet-birthdate"
+                  label={
+                    <>
+                      Pet&apos;s Birthdate
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="pet_birthdate"
+                  value={formData.pet_birthdate}
+                  onChange={handleChange}
+                  required
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormSelect
+                  feedbackInvalid="Sex is required"
+                  id="sex"
+                  label={
+                    <>
+                      Sex
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="sex"
+                  value={formData.sex}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Choose...</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </CFormSelect>
+              </CCol>
+              <CCol md={4}>
+                <CFormInput
+                  type="text"
+                  feedbackInvalid="Color is required"
+                  id="color"
+                  label={
+                    <>
+                      Color
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="color"
+                  value={formData.color}
+                  onChange={handleChange}
+                  required
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormSelect
+                  feedbackInvalid="Species is required"
+                  id="species"
+                  label={
+                    <>
+                      Species
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="species"
+                  value={formData.species}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Choose...</option>
+                  {speciesOptions.map((species) => (
+                    <option key={species.id} value={species.id}>
+                      {species.name}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+              <CCol md={6}>
+                <CFormSelect
+                  feedbackInvalid="Neutered is required"
+                  id="neutered"
+                  label={
+                    <>
+                      Neutered
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="neutered"
+                  value={formData.neutered}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Choose...</option>
+                  <option value="Y">Yes</option>
+                  <option value="N">No</option>
+                </CFormSelect>
+              </CCol>
+              <hr />
+              <CCol xs={12}>
+                <CButton color="primary" type="submit" className="float-end">
+                  {editMode ? 'Update' : 'Submit form'}
+                </CButton>
+              </CCol>
+            </CForm>
+          </CModalBody>
+        </CModal>
+      </Draggable>
 
       {/* Report */}
-      <CModal
-        alignment="center"
-        visible={reportFormModalVisible}
-        onClose={() => setReportFormModalVisible(false)}
-        backdrop="static"
-        keyboard={false}
-        size="lg"
+      <Draggable
+        handle=".modal-header"
+        position={modalPosition}
+        onStop={(e, data) => {
+          setModalPosition({ x: data.x, y: data.y })
+        }}
       >
-        <CModalHeader>
-          <CModalTitle>Generate Report</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <p className="text-small-emphasis">
-            Note:{' '}
-            <strong>
-              <span className="text-danger">*</span> is required
-            </strong>
-          </p>
-          <CForm
-            className="row g-3 needs-validation"
-            noValidate
-            validated={validated}
-            onSubmit={handleReportSubmit}
-          >
-            <CCol md={6}>
-              <CFormInput
-                type="date"
-                feedbackInvalid="Start Date is required"
-                id="start-date"
-                label={
-                  <>
-                    Start Date
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="start_date"
-                value={formReportData.start_date}
-                onChange={handleReportChange}
-                required
-              />
-            </CCol>
-            <CCol md={6}>
-              <CFormInput
-                type="date"
-                feedbackInvalid="End Date is required"
-                id="end-date"
-                label={
-                  <>
-                    End Date
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="end_date"
-                value={formReportData.end_date}
-                onChange={handleReportChange}
-                required
-              />
-            </CCol>
-            <CCol md={12}>
-              <CFormSelect
-                id="address"
-                feedbackInvalid="Address is required"
-                label={
-                  <>
-                    Address
-                    <span className="text-warning">
-                      <strong>*</strong>
-                    </span>
-                  </>
-                }
-                name="address"
-                value={formReportData.address}
-                onChange={handleReportChange}
-                required
-              >
-                <option value="">Choose...</option>
-                {barangayOptions.map((barangay) => (
-                  <option key={barangay.barangay} value={barangay.barangay}>
-                    {barangay.barangay}
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
-            <CCol md={12}>
-              <CFormSelect
-                feedbackInvalid="Species is required"
-                id="species"
-                label="Species"
-                name="species"
-                value={formReportData.species}
-                onChange={handleReportChange}
-              >
-                <option value="">Choose...</option>
-                {speciesOptions.map((species) => (
-                  <option key={species.id} value={species.id}>
-                    {species.name}
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
-            <hr />
-            <CCol xs={12}>
-              <CButton color="primary" type="submit" className="float-end">
-                <FontAwesomeIcon icon={faFilePdf} /> Generate Report
-              </CButton>
-            </CCol>
-          </CForm>
-        </CModalBody>
-      </CModal>
+        <CModal
+          alignment="center"
+          visible={reportFormModalVisible}
+          onClose={() => setReportFormModalVisible(false)}
+          backdrop="static"
+          keyboard={false}
+          size="lg"
+        >
+          <CModalHeader>
+            <CModalTitle>Generate Report</CModalTitle>
+          </CModalHeader>
+          <CModalBody>
+            <RequiredNote />
+            <CForm
+              className="row g-3 needs-validation"
+              noValidate
+              validated={validated}
+              onSubmit={handleReportSubmit}
+            >
+              <CCol md={6}>
+                <CFormInput
+                  type="date"
+                  feedbackInvalid="Start Date is required"
+                  id="start-date"
+                  label={
+                    <>
+                      Start Date
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="start_date"
+                  value={formReportData.start_date}
+                  onChange={handleReportChange}
+                  required
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormInput
+                  type="date"
+                  feedbackInvalid="End Date is required"
+                  id="end-date"
+                  label={
+                    <>
+                      End Date
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="end_date"
+                  value={formReportData.end_date}
+                  onChange={handleReportChange}
+                  required
+                />
+              </CCol>
+              <CCol md={12}>
+                <CFormSelect
+                  id="address"
+                  feedbackInvalid="Address is required"
+                  label={
+                    <>
+                      Address
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="address"
+                  value={formReportData.address}
+                  onChange={handleReportChange}
+                  required
+                >
+                  <option value="">Choose...</option>
+                  {barangayOptions.map((barangay) => (
+                    <option key={barangay.barangay} value={barangay.barangay}>
+                      {barangay.barangay}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+              <CCol md={12}>
+                <CFormSelect
+                  feedbackInvalid="Species is required"
+                  id="species"
+                  label="Species"
+                  name="species"
+                  value={formReportData.species}
+                  onChange={handleReportChange}
+                >
+                  <option value="">Choose...</option>
+                  {speciesOptions.map((species) => (
+                    <option key={species.id} value={species.id}>
+                      {species.name}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+              <hr />
+              <CCol xs={12}>
+                <CButton color="primary" type="submit" className="float-end">
+                  <FontAwesomeIcon icon={faFilePdf} /> Generate Report
+                </CButton>
+              </CCol>
+            </CForm>
+          </CModalBody>
+        </CModal>
+      </Draggable>
     </CRow>
   )
 }
