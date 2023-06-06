@@ -119,8 +119,8 @@ const Medication = ({ userId }) => {
       event.stopPropagation()
     } else {
       event.preventDefault()
-      const formData = new FormData(form)
-      const medication = formData.get('medication')
+      const _formData = new FormData(form)
+      const medication = _formData.get('medication')
       const timestamp = serverTimestamp()
       if (selectedItemId) {
         // Update operation
@@ -156,6 +156,8 @@ const Medication = ({ userId }) => {
           timestamp,
         })
           .then(() => {
+            setFormData({ ...formData, medication: '' })
+            setValidated(false)
             MySwal.fire({
               title: <strong>Success!</strong>,
               html: <i>New Record Successfully Added!</i>,

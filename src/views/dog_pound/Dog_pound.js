@@ -55,7 +55,7 @@ pdfMake.vfs = pdfFonts.pdfMake.vfs
 const Pet_owner = ({ roleType, userId }) => {
   const _table = 'dog_pound'
   const [data, setData] = useState([])
-  const [newDataFormModalVisible, setNewDataFormModalVisible] = useState(true)
+  const [newDataFormModalVisible, setNewDataFormModalVisible] = useState(false)
   const [reportFormModalVisible, setReportFormModalVisible] = useState(false)
   const [validated, setValidated] = useState(false)
   const [editMode, setEditMode] = useState(false)
@@ -403,16 +403,16 @@ const Pet_owner = ({ roleType, userId }) => {
       event.stopPropagation()
     } else {
       event.preventDefault()
-      const formData = new FormData(form)
-      const control_number = formData.get('control_number')
-      const date = formData.get('date')
-      const or_number = formData.get('or_number')
-      const owner_name = formData.get('owner_name')
-      const pet_name = formData.get('pet_name')
-      const color = formData.get('color')
-      const sex = formData.get('sex')
-      const size = formData.get('size')
-      const address = formData.get('address')
+      const _formData = new FormData(form)
+      const control_number = _formData.get('control_number')
+      const date = _formData.get('date')
+      const or_number = _formData.get('or_number')
+      const owner_name = _formData.get('owner_name')
+      const pet_name = _formData.get('pet_name')
+      const color = _formData.get('color')
+      const sex = _formData.get('sex')
+      const size = _formData.get('size')
+      const address = _formData.get('address')
       const timestamp = serverTimestamp()
       if (selectedItemId) {
         // Update operation
@@ -469,6 +469,20 @@ const Pet_owner = ({ roleType, userId }) => {
           timestamp,
         })
           .then(() => {
+            setFormData({
+              ...formData,
+              control_number: '',
+              or_number: '',
+              date: '',
+              owner_name: '',
+              pet_name: '',
+              color: '',
+              sex: '',
+              size: '',
+              address: '',
+            })
+            setValidated(false)
+
             MySwal.fire({
               title: <strong>Success!</strong>,
               html: <i>New Record Successfully Added!</i>,

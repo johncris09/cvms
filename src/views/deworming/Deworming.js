@@ -595,6 +595,20 @@ const Deworming = ({ roleType, userId }) => {
           timestamp,
         })
           .then(() => {
+            setFormData({
+              ...formData,
+              date_deworming: '',
+              address: '',
+              farmer_name: '',
+              species: '',
+              head_number: '',
+              treatment: '',
+              inputs: [{ id: 1, value: '' }],
+              female: '',
+              male: '',
+            })
+            setValidated(false)
+
             MySwal.fire({
               title: <strong>Success!</strong>,
               html: <i>New Record Successfully Added!</i>,

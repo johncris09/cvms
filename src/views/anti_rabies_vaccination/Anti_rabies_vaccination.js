@@ -492,17 +492,17 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
       event.stopPropagation()
     } else {
       event.preventDefault()
-      const formData = new FormData(form)
-      const date_vaccinated = formData.get('date_vaccinated')
-      const vaccine_type = formData.get('vaccine_type')
-      const address = formData.get('address')
-      const owner_name = formData.get('owner_name')
-      const pet_name = formData.get('pet_name')
-      const pet_birthdate = formData.get('pet_birthdate')
-      const color = formData.get('color')
-      const sex = formData.get('sex')
-      const species = formData.get('species')
-      const neutered = formData.get('neutered')
+      const _formData = new FormData(form)
+      const date_vaccinated = _formData.get('date_vaccinated')
+      const vaccine_type = _formData.get('vaccine_type')
+      const address = _formData.get('address')
+      const owner_name = _formData.get('owner_name')
+      const pet_name = _formData.get('pet_name')
+      const pet_birthdate = _formData.get('pet_birthdate')
+      const color = _formData.get('color')
+      const sex = _formData.get('sex')
+      const species = _formData.get('species')
+      const neutered = _formData.get('neutered')
       const timestamp = serverTimestamp()
       if (selectedItemId) {
         // Update operation
@@ -555,6 +555,21 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
           timestamp,
         })
           .then(() => {
+            setFormData({
+              ...formData,
+              date_vaccinated: '',
+              vaccine_type: '',
+              owner_name: '',
+              pet_name: '',
+              address: '',
+              pet_birthdate: '',
+              color: '',
+              sex: '',
+              species: '',
+              neutered: '',
+            })
+            setValidated(false)
+
             MySwal.fire({
               title: <strong>Success!</strong>,
               html: <i>New Record Successfully Added!</i>,

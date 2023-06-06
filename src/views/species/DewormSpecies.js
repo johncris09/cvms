@@ -119,8 +119,8 @@ const DewormSpecies = ({ userId }) => {
       event.stopPropagation()
     } else {
       event.preventDefault()
-      const formData = new FormData(form)
-      const name = formData.get('name')
+      const _formData = new FormData(form)
+      const name = _formData.get('name')
       const timestamp = serverTimestamp()
       if (selectedItemId) {
         // Update operation
@@ -156,6 +156,9 @@ const DewormSpecies = ({ userId }) => {
           timestamp,
         })
           .then(() => {
+            setFormData({ ...formData, name: '' })
+            setValidated(false)
+
             MySwal.fire({
               title: <strong>Success!</strong>,
               html: <i>New Record Successfully Added!</i>,
