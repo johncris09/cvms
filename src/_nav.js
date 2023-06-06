@@ -2,6 +2,7 @@ import React from 'react'
 import {
   cibDocker,
   cibFoursquare,
+  cibTheMovieDatabase,
   cilAnimal,
   cilBook,
   cilChart,
@@ -10,6 +11,7 @@ import {
   cilHistory,
   cilListRich,
   cilSpeedometer,
+  cilStorage,
   cilTablet,
   cilUser,
 } from '@coreui/icons'
@@ -120,6 +122,12 @@ const _nav = (userRoleType) => {
         name: 'User',
         to: '/user',
         icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Database Backup',
+        to: '/database_backup',
+        icon: <CIcon icon={cilStorage} customClassName="nav-icon" />,
       },
     )
   }
