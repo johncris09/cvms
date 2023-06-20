@@ -74,6 +74,7 @@ const Deworming = ({ roleType, userId }) => {
   const [speciesOptions, setSpeciesOptions] = useState([])
   const [medicationOptions, setMedicationOptions] = useState([])
   const [currentYear, setCurrentYear] = useState()
+  const [selectedYear, setSelectedYear] = useState(null)
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
   const [formData, setFormData] = useState({
     date_deworming: '',
@@ -97,20 +98,29 @@ const Deworming = ({ roleType, userId }) => {
     fetchBarangay()
     fetchSpecies()
     fetchMedication()
+    fetchData(_table)
+    fetchSelectedYear()
+  }, [selectedYear])
 
-    const currentYear = new Date().getFullYear() // Get the current year
-    setCurrentYear(currentYear)
-
-    fetchData(_table, currentYear)
-  }, [])
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    const options = { month: 'long', day: 'numeric', year: 'numeric' }
-    return date.toLocaleDateString('en-US', options)
+  const fetchSelectedYear = async () => {
+    try {
+      const yearRef = ref(database, 'config')
+      const yearSnapshot = await get(child(yearRef, '-NYLG8JAhoqBoLkdZJML'))
+      if (yearSnapshot.exists()) {
+        // Year data found
+        const yearData = yearSnapshot.val()
+        setSelectedYear(yearData.year)
+      } else {
+        // Year data not found
+        setSelectedYear(new Date().getFullYear())
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      setSelectedYear(new Date().getFullYear())
+    }
   }
 
-  const fetchData = async (table, currentYear) => {
+  const fetchData = async (table) => {
     try {
       const dataRef = ref(database, table)
       const dataQuery = query(dataRef, orderByChild('timestamp'))
@@ -121,9 +131,9 @@ const Deworming = ({ roleType, userId }) => {
           const dataArray = Object.values(data)
           // Filter the data based on the desired year and semester
           const filteredData = dataArray.filter((item) => {
-            const date = new Date(item.timestamp)
+            const date = new Date(item.date_deworming)
             const year = date.getFullYear()
-            return year === currentYear
+            return year == selectedYear
           })
 
           // // Sort the filtered data by spNo

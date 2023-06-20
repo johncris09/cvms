@@ -18,6 +18,7 @@ const DewormingReport = React.lazy(() => import('./views/report/DewormingReport'
 const AntiRabiesSpecies = React.lazy(() => import('./views/species/AntiRabiesSpecies'))
 const DewormSpecies = React.lazy(() => import('./views/species/DewormSpecies'))
 const Medication = React.lazy(() => import('./views/medication/Medication'))
+const Config = React.lazy(() => import('./views/config/Config'))
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
@@ -33,6 +34,7 @@ const routes = [
   { path: '/activity_log', name: 'Activity Log', element: ActivityLog },
   { path: '/report', name: 'Report', element: PetOwnerReport, exact: true },
   { path: '/report/pet_owner', name: 'Pet Owner Report', element: PetOwnerReport },
+  { path: '/config', name: 'Config', element: Config },
   {
     path: '/report/anti_rabies',
     name: 'Anti-Rabies Vaccination Report',

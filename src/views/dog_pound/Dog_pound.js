@@ -63,6 +63,7 @@ const Pet_owner = ({ roleType, userId }) => {
   const [currentYear, setCurrentYear] = useState()
   const [selectedItemId, setSelectedItemId] = useState(null)
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
+  const [selectedYear, setSelectedYear] = useState(null)
   const [formData, setFormData] = useState({
     control_number: '',
     or_number: '',
@@ -82,10 +83,29 @@ const Pet_owner = ({ roleType, userId }) => {
   useEffect(() => {
     fetchBarangay()
     setCurrentYear(CurrentYear)
-    fetchData(_table, CurrentYear)
-  }, [])
+    fetchData(_table)
+    fetchSelectedYear()
+  }, [selectedYear])
 
-  const fetchData = async (table, currentYear) => {
+  const fetchSelectedYear = async () => {
+    try {
+      const yearRef = ref(database, 'config')
+      const yearSnapshot = await get(child(yearRef, '-NYLG8JAhoqBoLkdZJML'))
+      if (yearSnapshot.exists()) {
+        // Year data found
+        const yearData = yearSnapshot.val()
+        setSelectedYear(yearData.year)
+      } else {
+        // Year data not found
+        setSelectedYear(new Date().getFullYear())
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      setSelectedYear(new Date().getFullYear())
+    }
+  }
+
+  const fetchData = async (table) => {
     try {
       const dogPoundRef = ref(database, table)
       const dogPoundQuery = query(dogPoundRef, orderByChild('date'))
@@ -98,7 +118,7 @@ const Pet_owner = ({ roleType, userId }) => {
           const filteredData = dogPoundArray.filter((item) => {
             const date = new Date(item.date)
             const year = date.getFullYear()
-            return year === currentYear
+            return year == selectedYear
           })
           // Sort the filtered data by date
           filteredData.sort((a, b) => new Date(b.date) - new Date(a.date))

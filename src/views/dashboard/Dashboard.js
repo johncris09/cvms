@@ -31,6 +31,7 @@ import {
   orderByChild,
   query,
   ref,
+  child,
 } from '../../firebaseConfig'
 import RequiredNote from 'src/helper/RequiredNote'
 
@@ -53,6 +54,7 @@ const Dashboard = ({ roleType }) => {
   const [dewormingFormModalVisible, setDewormingFormModalVisible] = useState(false)
   const [validated, setValidated] = useState(false)
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
+  const [selectedYear, setSelectedYear] = useState(null)
   const [formDogPoundData, setFormDogPoundData] = useState({
     start_date: '',
     end_date: '',
@@ -79,6 +81,7 @@ const Dashboard = ({ roleType }) => {
     fetchDewormingSpecies()
     fetchDewormingData()
     fetchMedication()
+    fetchSelectedYear()
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setEmail(user.email)
@@ -99,6 +102,25 @@ const Dashboard = ({ roleType }) => {
 
     return () => unsubscribe()
   }, [dogPoundData])
+
+  const fetchSelectedYear = async () => {
+    try {
+      const yearRef = ref(database, 'config')
+      const yearSnapshot = await get(child(yearRef, '-NYLG8JAhoqBoLkdZJML'))
+      if (yearSnapshot.exists()) {
+        // Year data found
+        const yearData = yearSnapshot.val()
+        setSelectedYear(yearData.year)
+      } else {
+        // Year data not found
+        setSelectedYear(new Date().getFullYear())
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      setSelectedYear(new Date().getFullYear())
+    }
+  }
+
   const fetchDogPoundData = async () => {
     try {
       const barangayRef = ref(database, 'barangay')
@@ -121,10 +143,10 @@ const Dashboard = ({ roleType }) => {
         const startDate = formDogPoundData.start_date ? new Date(formDogPoundData.start_date) : null
         const endDate = formDogPoundData.end_date ? new Date(formDogPoundData.end_date) : null
         if (
-          currentYear === dogPoundDate &&
+          selectedYear == dogPoundDate &&
           (startDate === null || endDate === null
             ? true
-            : new Date(date) >= startDate && new Date(date) < endDate)
+            : new Date(date) >= startDate && new Date(date) <= endDate)
         ) {
           let _date = new Date(date)
           // Find the corresponding barangay for the current dog pound
@@ -180,7 +202,6 @@ const Dashboard = ({ roleType }) => {
       const femaleCounts = []
       let totalMaleCount = 0
       let totalFemaleCount = 0
-      const currentYear = new Date().getFullYear()
       // Loop through each anti rabies
       for (const anti_rabies of antiRabies) {
         const { address, sex, timestamp, species, date_vaccinated, neutered } = anti_rabies
@@ -194,7 +215,7 @@ const Dashboard = ({ roleType }) => {
         const speciesNeutered = formAntiRabiesData.neutered ? formAntiRabiesData.neutered : null
 
         if (
-          currentYear == new Date(date_vaccinated).getFullYear() &&
+          selectedYear == new Date(date_vaccinated).getFullYear() &&
           (startDate === null || endDate === null
             ? true
             : new Date(date_vaccinated) >= startDate && new Date(date_vaccinated) < endDate) &&
@@ -256,7 +277,6 @@ const Dashboard = ({ roleType }) => {
       const femaleCounts = []
       let totalMaleCount = 0
       let totalFemaleCount = 0
-      const currentYear = new Date().getFullYear()
       // Loop through each deworming
       for (const deworm of deworming) {
         const { address, female, male, timestamp, species, date_deworming, treatment } = deworm
@@ -269,7 +289,7 @@ const Dashboard = ({ roleType }) => {
 
         // console.info(species)
         if (
-          currentYear == new Date(date_deworming).getFullYear() &&
+          selectedYear == new Date(date_deworming).getFullYear() &&
           (startDate === null || endDate === null
             ? true
             : new Date(date_deworming) >= startDate && new Date(date_deworming) < endDate) &&
@@ -317,11 +337,6 @@ const Dashboard = ({ roleType }) => {
       console.error('Error fetching deworming data:', error)
     }
   }
-
-  // const handleAntiRabiesChange = (e) => {
-  //   const { value } = e.target
-  //   setSelectedSpeciesAntiRabies(value)
-  // }
 
   const fetchAntiTabiesSpecies = async () => {
     try {

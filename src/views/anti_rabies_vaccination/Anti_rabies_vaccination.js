@@ -63,6 +63,8 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
   const [speciesOptions, setSpeciesOptions] = useState([])
   const [currentYear, setCurrentYear] = useState()
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
+  const [selectedItemId, setSelectedItemId] = useState(null)
+  const [selectedYear, setSelectedYear] = useState(null)
   const [formData, setFormData] = useState({
     date_vaccinated: '',
     vaccine_type: '',
@@ -81,18 +83,32 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
     address: '',
     species: '',
   })
-  const [selectedItemId, setSelectedItemId] = useState(null)
   useEffect(() => {
     fetchBarangay()
     fetchSpecies()
 
-    const currentYear = new Date().getFullYear() // Get the current year
-    setCurrentYear(currentYear)
+    fetchData(_table)
+    fetchSelectedYear()
+  }, [selectedYear])
 
-    fetchData(_table, currentYear)
-  }, [])
-
-  const fetchData = async (table, currentYear) => {
+  const fetchSelectedYear = async () => {
+    try {
+      const yearRef = ref(database, 'config')
+      const yearSnapshot = await get(child(yearRef, '-NYLG8JAhoqBoLkdZJML'))
+      if (yearSnapshot.exists()) {
+        // Year data found
+        const yearData = yearSnapshot.val()
+        setSelectedYear(yearData.year)
+      } else {
+        // Year data not found
+        setSelectedYear(new Date().getFullYear())
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      setSelectedYear(new Date().getFullYear())
+    }
+  }
+  const fetchData = async (table) => {
     try {
       const dataRef = ref(database, table)
       const dataQuery = query(dataRef, orderByChild('timestamp'))
@@ -105,7 +121,7 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
           const filteredData = dataArray.filter((item) => {
             const date = new Date(item.date_vaccinated)
             const year = date.getFullYear()
-            return year === currentYear
+            return year == selectedYear
           })
 
           // // Sort the filtered data by spNo

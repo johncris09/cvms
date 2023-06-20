@@ -5,6 +5,8 @@ import {
   cibTheMovieDatabase,
   cilAnimal,
   cilBook,
+  cilCalendar,
+  cilCalendarCheck,
   cilChart,
   cilDog,
   cilEyedropper,
@@ -43,6 +45,12 @@ const _nav = (userRoleType) => {
       name: 'Deworming',
       to: '/deworming',
       icon: <CIcon icon={cilAnimal} customClassName="nav-icon" />,
+    },
+    {
+      component: CNavItem,
+      name: 'Configuration',
+      to: '/config',
+      icon: <CIcon icon={cilCalendarCheck} customClassName="nav-icon" />,
     },
     // {
     //   component: CNavTitle,
