@@ -36,6 +36,10 @@ import {
 import RequiredNote from 'src/helper/RequiredNote'
 
 const Dashboard = ({ roleType }) => {
+  const antiRabiesDefaultId = '-NX8KtCPVhgFEDDv0l0v'
+  const antiRabiesDefaultvalue = 'Cat'
+  const dewormingDefaultId = '-NWjm_MQYI0XlG55JJ4P'
+  const dewormingDefaultvalue = 'Carabao'
   const [status, setStatus] = useState(null)
   const [email, setEmail] = useState(null)
   const [dogPoundData, setDogPoundData] = useState([])
@@ -43,12 +47,12 @@ const Dashboard = ({ roleType }) => {
   const [antiRabiesSpeciesOptions, setAntiRabiesSpeciesOptions] = useState([])
   const [dewormingSpeciesOptions, setDewormingOptions] = useState([])
   const [medicationOptions, setMedicationOptions] = useState([])
-  const [selectedSpeciesAntiRabies, setSelectedSpeciesAntiRabies] = useState('-NX8KtCPVhgFEDDv0l0v')
+  const [selectedSpeciesAntiRabies, setSelectedSpeciesAntiRabies] = useState(antiRabiesDefaultId)
   const [antiRabiesDefaultLabel, setAntiRabiesDefaultLabel] = useState('Cat')
   const [antiRabiesData, setAntiRabiesData] = useState([])
   const [antiRabiesTotalData, setAntiRabiesTotalData] = useState([])
-  const [selectedSpeciesDeworming, setSelectedSpeciesDeworming] = useState('-NWjm_MQYI0XlG55JJ4P')
-  const [dewormingDefaultLabel, setDewormingDefaultLabel] = useState('Carabao')
+  const [selectedSpeciesDeworming, setSelectedSpeciesDeworming] = useState(dewormingDefaultId)
+  const [dewormingDefaultLabel, setDewormingDefaultLabel] = useState(dewormingDefaultvalue)
   const [dewormingData, setDewormingData] = useState([])
   const [dewormingTotalData, setDewormingTotalData] = useState([])
   const [dogPoundFormModalVisible, setDogPoundFormModalVisible] = useState(false)
@@ -484,11 +488,13 @@ const Dashboard = ({ roleType }) => {
   const handleAntiRabiesResetFilter = () => {
     setFormAntiRabiesData({
       ...formAntiRabiesData,
-      species: '-NWjlZLSfWsrJgtMS0j7',
+      species: antiRabiesDefaultId,
       neutered: '',
       start_date: '',
       end_date: '',
     })
+
+    setAntiRabiesDefaultLabel('Cat')
   }
 
   const handleDisplayDewormingModal = () => {
@@ -506,10 +512,12 @@ const Dashboard = ({ roleType }) => {
   const handleDewormingResetFilter = () => {
     setFormDewormingData({
       ...formDewormingData,
-      species: '-NWjm_MQYI0XlG55JJ4P',
+      species: dewormingDefaultId,
       start_date: '',
       end_date: '',
     })
+
+    setDewormingDefaultLabel(dewormingDefaultvalue)
   }
 
   return (
