@@ -84,7 +84,7 @@ const Config = ({ roleType, userId }) => {
           })
         TrackUserActivity({
           userId: userId,
-          reference: 'Deworming',
+          reference: 'Config',
           referenceTable: _table,
           activity: 'Updated a record',
           value: { id: selectedItemId, year: year },
