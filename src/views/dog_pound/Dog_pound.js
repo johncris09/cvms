@@ -608,7 +608,23 @@ const Pet_owner = ({ roleType, userId }) => {
       activity: 'Exporting selected data to Excel',
       value: { description: 'Generating selected row to Excel file' },
     })
-    csvExporter.generateCsv(rows.map((row) => row.original))
+    const exportedData = rows
+      .map((row) => row.original)
+      .map((item) => {
+        return {
+          date: item.date,
+          or_number: item.or_number,
+          owner_name: item.owner_name,
+          pet_name: item.pet_name,
+          color: item.color,
+          sex: item.sex,
+          size: item.size,
+          address: item.address,
+          created_at: item.created_at,
+        }
+      })
+
+    csvExporter.generateCsv(exportedData)
   }
   const handleExportData = () => {
     TrackUserActivity({
@@ -618,7 +634,21 @@ const Pet_owner = ({ roleType, userId }) => {
       activity: 'Exporting data to Excel',
       value: { description: 'Generating Excel file' },
     })
-    csvExporter.generateCsv(data)
+
+    const exportedData = data.map((item) => {
+      return {
+        date: item.date,
+        or_number: item.or_number,
+        owner_name: item.owner_name,
+        pet_name: item.pet_name,
+        color: item.color,
+        sex: item.sex,
+        size: item.size,
+        address: item.address,
+        created_at: item.created_at,
+      }
+    })
+    csvExporter.generateCsv(exportedData)
   }
 
   return (

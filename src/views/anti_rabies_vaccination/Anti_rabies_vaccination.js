@@ -680,7 +680,25 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
       activity: 'Exporting selected data to Excel',
       value: { description: 'Generating selected row to Excel file' },
     })
-    csvExporter.generateCsv(rows.map((row) => row.original))
+    const exportedData = rows
+      .map((row) => row.original)
+      .map((item) => {
+        return {
+          date_vaccinated: item.date_vaccinated,
+          address: item.address,
+          owner_name: item.owner_name,
+          pet_name: item.pet_name,
+          age: item.age,
+          sex: item.sex,
+          color: item.color,
+          species: item.species,
+          neutered: item.neutered,
+          vaccine_type: item.vaccine_type,
+          created_at: item.created_at,
+        }
+      })
+
+    csvExporter.generateCsv(exportedData)
   }
   const handleExportData = () => {
     TrackUserActivity({
@@ -690,7 +708,22 @@ const Anti_rabies_vaccination = ({ roleType, userId }) => {
       activity: 'Exporting data to Excel',
       value: { description: 'Generating Excel file' },
     })
-    csvExporter.generateCsv(data)
+    const exportedData = data.map((item) => {
+      return {
+        date_vaccinated: item.date_vaccinated,
+        address: item.address,
+        owner_name: item.owner_name,
+        pet_name: item.pet_name,
+        age: item.age,
+        sex: item.sex,
+        color: item.color,
+        species: item.species,
+        neutered: item.neutered,
+        vaccine_type: item.vaccine_type,
+        created_at: item.created_at,
+      }
+    })
+    csvExporter.generateCsv(exportedData)
   }
   return (
     <CRow>

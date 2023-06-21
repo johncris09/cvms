@@ -720,7 +720,23 @@ const Deworming = ({ roleType, userId }) => {
       activity: 'Exporting selected data to Excel',
       value: { description: 'Generating selected row to Excel file' },
     })
-    csvExporter.generateCsv(rows.map((row) => row.original))
+    const exportedData = rows
+      .map((row) => row.original)
+      .map((item) => {
+        return {
+          date_deworming: item.date_deworming,
+          address: item.address,
+          farmer_name: item.farmer_name,
+          species: item.species,
+          head_number: item.head_number,
+          treatment: item.treatment,
+          amount: item.amount,
+          sex: item.sex,
+          created_at: item.created_at,
+        }
+      })
+
+    csvExporter.generateCsv(exportedData)
   }
   const handleExportData = () => {
     TrackUserActivity({
@@ -730,7 +746,21 @@ const Deworming = ({ roleType, userId }) => {
       activity: 'Exporting data to Excel',
       value: { description: 'Generating Excel file' },
     })
-    csvExporter.generateCsv(data)
+
+    const exportedData = data.map((item) => {
+      return {
+        date_deworming: item.date_deworming,
+        address: item.address,
+        farmer_name: item.farmer_name,
+        species: item.species,
+        head_number: item.head_number,
+        treatment: item.treatment,
+        amount: item.amount,
+        sex: item.sex,
+        created_at: item.created_at,
+      }
+    })
+    csvExporter.generateCsv(exportedData)
   }
   return (
     <CRow>
