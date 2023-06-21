@@ -44,9 +44,11 @@ const Dashboard = ({ roleType }) => {
   const [dewormingSpeciesOptions, setDewormingOptions] = useState([])
   const [medicationOptions, setMedicationOptions] = useState([])
   const [selectedSpeciesAntiRabies, setSelectedSpeciesAntiRabies] = useState('-NX8KtCPVhgFEDDv0l0v')
+  const [antiRabiesDefaultLabel, setAntiRabiesDefaultLabel] = useState('Cat')
   const [antiRabiesData, setAntiRabiesData] = useState([])
   const [antiRabiesTotalData, setAntiRabiesTotalData] = useState([])
   const [selectedSpeciesDeworming, setSelectedSpeciesDeworming] = useState('-NWjm_MQYI0XlG55JJ4P')
+  const [dewormingDefaultLabel, setDewormingDefaultLabel] = useState('Carabao')
   const [dewormingData, setDewormingData] = useState([])
   const [dewormingTotalData, setDewormingTotalData] = useState([])
   const [dogPoundFormModalVisible, setDogPoundFormModalVisible] = useState(false)
@@ -185,7 +187,32 @@ const Dashboard = ({ roleType }) => {
         female: totalFemaleCount.toLocaleString(),
       })
     } catch (error) {
-      console.error('Error fetching dog owner data:', error)
+      const barangayRef = ref(database, 'barangay')
+      const barangaySnapshot = await get(barangayRef)
+      const barangays = Object.values(barangaySnapshot.val()).map((barangay) => barangay.barangay)
+
+      const dogPoundData = {
+        labels: barangays,
+        datasets: [
+          {
+            label: 'Male',
+            backgroundColor: '#799ff8',
+            data: 0,
+          },
+          {
+            label: 'Female',
+            backgroundColor: '#f87979',
+            data: 0,
+          },
+        ],
+      }
+
+      setDogPoundData(dogPoundData)
+      setDogPoundTotalData({
+        male: 0,
+        female: 0,
+      })
+      // console.error('Error fetching dog owner data:', error)
     }
   }
   const fetchAntiRabiesData = async () => {
@@ -213,7 +240,6 @@ const Dashboard = ({ roleType }) => {
         const endDate = formAntiRabiesData.end_date ? new Date(formAntiRabiesData.end_date) : null
         const antiRabiesSpecies = formAntiRabiesData.species ? formAntiRabiesData.species : null
         const speciesNeutered = formAntiRabiesData.neutered ? formAntiRabiesData.neutered : null
-
         if (
           selectedYear == new Date(date_vaccinated).getFullYear() &&
           (startDate === null || endDate === null
@@ -221,7 +247,7 @@ const Dashboard = ({ roleType }) => {
             : new Date(date_vaccinated) >= startDate && new Date(date_vaccinated) < endDate) &&
           (speciesNeutered === null ? true : speciesNeutered === neutered)
         ) {
-          if (species == formAntiRabiesData.species) {
+          if (species == antiRabiesSpecies) {
             // Find the corresponding barangay for the current anti rabies
             const index = barangays.indexOf(address)
             if (index !== -1) {
@@ -259,7 +285,32 @@ const Dashboard = ({ roleType }) => {
         female: totalFemaleCount.toLocaleString(),
       })
     } catch (error) {
-      console.error('Error fetching anti rabies data:', error)
+      const barangayRef = ref(database, 'barangay')
+      const barangaySnapshot = await get(barangayRef)
+      const barangays = Object.values(barangaySnapshot.val()).map((barangay) => barangay.barangay)
+      const _antiRabiesData = {
+        labels: barangays,
+        datasets: [
+          {
+            label: 'Male',
+            backgroundColor: '#799ff8',
+            data: 0,
+          },
+          {
+            label: 'Female',
+            backgroundColor: '#f87979',
+            data: 0,
+          },
+        ],
+      }
+
+      setAntiRabiesData(_antiRabiesData)
+      setAntiRabiesTotalData({
+        male: 0,
+        female: 0,
+      })
+
+      // console.error('Error fetching anti rabies data:', error)
     }
   }
 
@@ -334,7 +385,33 @@ const Dashboard = ({ roleType }) => {
         female: totalFemaleCount.toLocaleString(),
       })
     } catch (error) {
-      console.error('Error fetching deworming data:', error)
+      const barangayRef = ref(database, 'barangay')
+      const barangaySnapshot = await get(barangayRef)
+      const barangays = Object.values(barangaySnapshot.val()).map((barangay) => barangay.barangay)
+
+      const _dewormingData = {
+        labels: barangays,
+        datasets: [
+          {
+            label: 'Male',
+            backgroundColor: '#799ff8',
+            data: 0,
+          },
+          {
+            label: 'Female',
+            backgroundColor: '#f87979',
+            data: 0,
+          },
+        ],
+      }
+
+      setDewormingData(_dewormingData)
+      setDewormingTotalData({
+        male: 0,
+        female: 0,
+      })
+
+      // console.error('Error fetching deworming data:', error)
     }
   }
 
@@ -397,6 +474,11 @@ const Dashboard = ({ roleType }) => {
 
   const handleAntiRabiesChange = (e) => {
     const { name, value } = e.target
+    if (name === 'species') {
+      const species = e.target.options[e.target.selectedIndex].text
+      setAntiRabiesDefaultLabel(species)
+    }
+
     setFormAntiRabiesData({ ...formAntiRabiesData, [name]: value })
   }
   const handleAntiRabiesResetFilter = () => {
@@ -415,6 +497,10 @@ const Dashboard = ({ roleType }) => {
 
   const handleDewormingChange = (e) => {
     const { name, value } = e.target
+    if (name === 'species') {
+      const species = e.target.options[e.target.selectedIndex].text
+      setDewormingDefaultLabel(species)
+    }
     setFormDewormingData({ ...formDewormingData, [name]: value })
   }
   const handleDewormingResetFilter = () => {
@@ -464,7 +550,7 @@ const Dashboard = ({ roleType }) => {
                 <CRow>
                   <CCol sm={5}>
                     <h4 id="anti-rabies" className="card-title mb-0">
-                      Anti-Rabies
+                      Anti-Rabies ({antiRabiesDefaultLabel})
                     </h4>
                     <div className="small text-medium-emphasis">
                       <strong>Male:</strong> {antiRabiesTotalData.male} <br />
@@ -492,7 +578,7 @@ const Dashboard = ({ roleType }) => {
                 <CRow>
                   <CCol sm={5}>
                     <h4 id="deworming" className="card-title mb-0">
-                      Deworming
+                      Deworming({dewormingDefaultLabel})
                     </h4>
                     <div className="small text-medium-emphasis">
                       <strong>Male:</strong> {dewormingTotalData.male} <br />
