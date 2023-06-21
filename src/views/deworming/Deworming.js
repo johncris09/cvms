@@ -371,19 +371,6 @@ const Deworming = ({ roleType, userId }) => {
 
               const currentDateTime = new Date().toLocaleString('en-US')
               const documentDefinition = {
-                background: [
-                  {
-                    text: 'Sample Print',
-                    color: 'gray',
-                    opacity: 0.5,
-                    fontSize: 60,
-                    bold: true,
-                    italics: true,
-                    rotation: 135,
-                    alignment: 'center',
-                    margin: [0, 200],
-                  },
-                ],
                 footer: function (currentPage, pageCount) {
                   return {
                     columns: [
