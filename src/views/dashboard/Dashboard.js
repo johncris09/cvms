@@ -36,8 +36,8 @@ import {
 import RequiredNote from 'src/helper/RequiredNote'
 
 const Dashboard = ({ roleType }) => {
-  const antiRabiesDefaultId = '-NX8KtCPVhgFEDDv0l0v'
-  const antiRabiesDefaultvalue = 'Cat'
+  const antiRabiesDefaultId = '-NX8MjNQGbOvwIzVxV4X'
+  const antiRabiesDefaultvalue = 'Dog'
   const dewormingDefaultId = '-NWjm_MQYI0XlG55JJ4P'
   const dewormingDefaultvalue = 'Carabao'
   const [status, setStatus] = useState(null)
@@ -48,7 +48,7 @@ const Dashboard = ({ roleType }) => {
   const [dewormingSpeciesOptions, setDewormingOptions] = useState([])
   const [medicationOptions, setMedicationOptions] = useState([])
   const [selectedSpeciesAntiRabies, setSelectedSpeciesAntiRabies] = useState(antiRabiesDefaultId)
-  const [antiRabiesDefaultLabel, setAntiRabiesDefaultLabel] = useState('Cat')
+  const [antiRabiesDefaultLabel, setAntiRabiesDefaultLabel] = useState(antiRabiesDefaultvalue)
   const [antiRabiesData, setAntiRabiesData] = useState([])
   const [antiRabiesTotalData, setAntiRabiesTotalData] = useState([])
   const [selectedSpeciesDeworming, setSelectedSpeciesDeworming] = useState(dewormingDefaultId)
@@ -493,8 +493,13 @@ const Dashboard = ({ roleType }) => {
       start_date: '',
       end_date: '',
     })
-
-    setAntiRabiesDefaultLabel('Cat')
+    const selectElement = document.getElementById('antiRabiesSelect')
+    if (selectElement) {
+      selectElement.value = antiRabiesDefaultId
+    }
+    // console.info(selectElement)
+    // console.info(antiRabiesDefaultId)
+    setAntiRabiesDefaultLabel(antiRabiesDefaultvalue)
   }
 
   const handleDisplayDewormingModal = () => {
@@ -723,10 +728,15 @@ const Dashboard = ({ roleType }) => {
                       label="Species"
                       name="species"
                       onChange={handleAntiRabiesChange}
+                      id="antiRabiesSelect"
                     >
                       <option disabled>Choose...</option>
                       {antiRabiesSpeciesOptions.map((species) => (
-                        <option key={species.id} value={species.id}>
+                        <option
+                          selected={species.id == antiRabiesDefaultId && true}
+                          key={species.id}
+                          value={species.id}
+                        >
                           {species.name}
                         </option>
                       ))}
