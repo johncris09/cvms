@@ -636,7 +636,12 @@ const Dashboard = ({ roleType }) => {
               <CModalBody>
                 <RequiredNote />
                 <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                  <CButton color="danger" variant="outline" onClick={handleDogPoundResetFilter}>
+                  <CButton
+                    className="btn-sm"
+                    color="danger"
+                    variant="outline"
+                    onClick={handleDogPoundResetFilter}
+                  >
                     <FontAwesomeIcon icon={faCancel} /> Reset Filter
                   </CButton>
                 </div>
@@ -717,7 +722,12 @@ const Dashboard = ({ roleType }) => {
               <CModalBody>
                 <RequiredNote />
                 <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                  <CButton color="danger" variant="outline" onClick={handleAntiRabiesResetFilter}>
+                  <CButton
+                    className="btn-sm"
+                    color="danger"
+                    variant="outline"
+                    onClick={handleAntiRabiesResetFilter}
+                  >
                     <FontAwesomeIcon icon={faCancel} /> Reset Filter
                   </CButton>
                 </div>
@@ -830,7 +840,12 @@ const Dashboard = ({ roleType }) => {
               <CModalBody>
                 <RequiredNote />
                 <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                  <CButton color="danger" variant="outline" onClick={handleDewormingResetFilter}>
+                  <CButton
+                    className="btn-sm"
+                    color="danger"
+                    variant="outline"
+                    onClick={handleDewormingResetFilter}
+                  >
                     <FontAwesomeIcon icon={faCancel} /> Reset Filter
                   </CButton>
                 </div>
