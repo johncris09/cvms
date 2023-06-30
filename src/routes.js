@@ -1,7 +1,9 @@
 import React from 'react'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
-const Dog_pound = React.lazy(() => import('./views/dog_pound/Dog_pound'))
+const Dog_pound = React.lazy(() => import('./views/manage_dog/dog_pound/Dog_pound'))
+const AdoptClaim = React.lazy(() => import('./views/manage_dog/adoptclaim/AdoptClaim'))
+const Disposed = React.lazy(() => import('./views/manage_dog/disposed/Disposed'))
 const Anti_rabies_vaccination = React.lazy(() =>
   import('./views/anti_rabies_vaccination/Anti_rabies_vaccination'),
 )
@@ -22,7 +24,10 @@ const Config = React.lazy(() => import('./views/config/Config'))
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
-  { path: '/dog_pound', name: 'Dog Pound', element: Dog_pound },
+  { path: '/manage_dog', name: 'Manage Dog', element: Dog_pound, exact: true },
+  { path: '/manage_dog/dog_pound', name: 'Dog Pound', element: Dog_pound },
+  { path: '/manage_dog/adopt_claim', name: 'Adopt/Claim', element: AdoptClaim },
+  { path: '/manage_dog/disposed', name: 'Disposed Dogs', element: Disposed },
   {
     path: '/anti_rabies_vaccination',
     name: 'Anti Rabies Vaccination',

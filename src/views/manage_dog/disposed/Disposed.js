@@ -32,12 +32,21 @@ import {
   child,
   onValue,
   remove,
-} from '../../firebaseConfig'
-import { DeleteOutline, EditSharp } from '@mui/icons-material'
+} from '../../../firebaseConfig'
+import {
+  DeleteOutline,
+  EditSharp,
+  Handshake,
+  HandshakeOutlined,
+  HandshakeRounded,
+  HandshakeSharp,
+  MedicationLiquid,
+  TimerSharp,
+} from '@mui/icons-material'
 import { OroquietaCityLogo, cityVetLogo } from 'src/helper/LogoReport'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFileExcel, faFilePdf, faPlusCircle } from '@fortawesome/free-solid-svg-icons'
-import ConvertToTitleCase from '../../helper/ConvertToTitleCase'
+import ConvertToTitleCase from '../../../helper/ConvertToTitleCase'
 
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
@@ -52,11 +61,13 @@ import RequiredNote from 'src/helper/RequiredNote'
 const MySwal = withReactContent(Swal)
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs
-const Pet_owner = ({ roleType, userId }) => {
-  const _table = 'dog_pound'
+const Disposed = ({ roleType, userId }) => {
+  const _table = 'disposed_dog'
   const [data, setData] = useState([])
   const [newDataFormModalVisible, setNewDataFormModalVisible] = useState(false)
   const [reportFormModalVisible, setReportFormModalVisible] = useState(false)
+  const [adoptFormModalVisible, setAdoptFormModalVisible] = useState(false)
+  const [disposedFormModalVisible, setDisposedFormModalVisible] = useState(false)
   const [validated, setValidated] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [barangayOptions, setBarangayOptions] = useState([])
@@ -79,6 +90,18 @@ const Pet_owner = ({ roleType, userId }) => {
     start_date: '',
     end_date: '',
     address: '',
+  })
+  const [formAdoptData, setFormAdoptData] = useState({
+    dogPoundId: '',
+    date: '',
+    owner_name: '',
+    address: '',
+    status: '',
+  })
+  const [formDisposedData, setFormDisposedData] = useState({
+    dogPoundId: '',
+    date: '',
+    medicine: '',
   })
   useEffect(() => {
     fetchBarangay()
@@ -134,6 +157,8 @@ const Pet_owner = ({ roleType, userId }) => {
               size: item.size,
               address: item.address,
               created_at: FormatDateTime(item.timestamp),
+              disposed_date: item.disposed_date,
+              medicine: item.medicine,
             }
           })
 
@@ -549,14 +574,142 @@ const Pet_owner = ({ roleType, userId }) => {
     setFormReportData({ ...formReportData, [name]: value })
   }
 
+  const handleAdoptClaimSubmit = async (event) => {
+    const form = event.currentTarget
+    if (form.checkValidity() === false) {
+      event.preventDefault()
+      event.stopPropagation()
+    } else {
+      event.preventDefault()
+      const _formData = new FormData(form)
+      const timestamp = serverTimestamp()
+
+      try {
+        let dogId = formAdoptData.dogPoundId
+        console.info(dogId)
+        const dogSnapshot = await get(ref(database, `dog_pound/${dogId}`))
+        if (dogSnapshot.exists()) {
+          const dogData = dogSnapshot.val()
+
+          const adoptData = {
+            ...dogData,
+            adopt_date: _formData.get('date'),
+            adopt_owner_name: _formData.get('owner_name'),
+            adopt_address: _formData.get('address'),
+            status: _formData.get('status'),
+            timestamp,
+          }
+          // console.info(adoptData)
+
+          await set(ref(database, `adopt/${dogId}`), adoptData)
+          await remove(ref(database, `dog_pound/${dogId}`))
+
+          setFormAdoptData({
+            ...formAdoptData,
+            date: '',
+            owner_name: '',
+            address: '',
+            status: '',
+          })
+          setValidated(false)
+
+          MySwal.fire({
+            title: <strong>Success!</strong>,
+            html: <i>New Record Successfully Added!</i>,
+            icon: 'success',
+          })
+
+          setAdoptFormModalVisible(false)
+        } else {
+          console.log('Dog data not found')
+        }
+      } catch (error) {
+        console.error('Error moving data:', error)
+      }
+    }
+    setValidated(true)
+  }
+
+  const handleDisposedSubmit = async (event) => {
+    const form = event.currentTarget
+    if (form.checkValidity() === false) {
+      event.preventDefault()
+      event.stopPropagation()
+    } else {
+      event.preventDefault()
+      const _formData = new FormData(form)
+      const timestamp = serverTimestamp()
+
+      try {
+        let dogId = formDisposedData.dogPoundId
+        const dogSnapshot = await get(ref(database, `dog_pound/${dogId}`))
+        if (dogSnapshot.exists()) {
+          const dogData = dogSnapshot.val()
+
+          const disposedDogData = {
+            ...dogData,
+            disposed_date: _formData.get('date'),
+            medicine: _formData.get('medicine'),
+            timestamp,
+          }
+
+          await set(ref(database, `disposed_dog/${dogId}`), disposedDogData)
+          await remove(ref(database, `dog_pound/${dogId}`))
+
+          setFormDisposedData({
+            ...formDisposedData,
+            date: '',
+            medicine: '',
+          })
+          setValidated(false)
+
+          MySwal.fire({
+            title: <strong>Success!</strong>,
+            html: <i>New Record Successfully Added!</i>,
+            icon: 'success',
+          })
+
+          setDisposedFormModalVisible(false)
+        } else {
+          console.log('Dog data not found')
+        }
+      } catch (error) {
+        console.error('Error moving data:', error)
+      }
+    }
+    setValidated(true)
+  }
+
+  const handleAdoptChange = (e) => {
+    const { name, value, type } = e.target
+    let updatedValue = value
+
+    // Convert text inputs to title case
+    if (type === 'text') {
+      updatedValue = ConvertToTitleCase(value)
+    }
+    setFormAdoptData({ ...formAdoptData, [name]: updatedValue })
+  }
+
+  const handleDisposedChange = (e) => {
+    const { name, value, type } = e.target
+    let updatedValue = value
+
+    // Convert text inputs to title case
+    if (type === 'text') {
+      updatedValue = ConvertToTitleCase(value)
+    }
+    setFormDisposedData({ ...formDisposedData, [name]: updatedValue })
+  }
+
   const columns = [
     {
-      accessorKey: 'date',
-      header: 'Date',
+      accessorKey: 'disposed_date',
+      header: 'Disposed Date',
     },
     {
-      accessorKey: 'or_number',
-      header: 'Or #',
+      accessorKey: 'medicine',
+      header: 'Medicine',
     },
     {
       accessorKey: 'owner_name',
@@ -603,7 +756,7 @@ const Pet_owner = ({ roleType, userId }) => {
   const handleExportRows = (rows) => {
     TrackUserActivity({
       userId: userId,
-      reference: 'Dog Pound',
+      reference: 'Disposed Dogs',
       referenceTable: _table,
       activity: 'Exporting selected data to Excel',
       value: { description: 'Generating selected row to Excel file' },
@@ -629,7 +782,7 @@ const Pet_owner = ({ roleType, userId }) => {
   const handleExportData = () => {
     TrackUserActivity({
       userId: userId,
-      reference: 'Dog Pound',
+      reference: 'Disposed Dogs',
       referenceTable: _table,
       activity: 'Exporting data to Excel',
       value: { description: 'Generating Excel file' },
@@ -637,8 +790,8 @@ const Pet_owner = ({ roleType, userId }) => {
 
     const exportedData = data.map((item) => {
       return {
-        date: item.date,
-        or_number: item.or_number,
+        date: item.disposed_date,
+        medicine: item.medicine,
         owner_name: item.owner_name,
         pet_name: item.pet_name,
         color: item.color,
@@ -656,8 +809,8 @@ const Pet_owner = ({ roleType, userId }) => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <strong>Dog Pound</strong>
-            {roleType !== 'User' && (
+            <strong>Disposed Dogs</strong>
+            {/* {roleType !== 'User' && (
               <>
                 <CButton
                   color="success"
@@ -676,7 +829,7 @@ const Pet_owner = ({ roleType, userId }) => {
                   <FontAwesomeIcon icon={faPlusCircle} /> Add New Data
                 </CButton>
               </>
-            )}
+            )} */}
           </CCardHeader>
           <CCardBody>
             <>
@@ -702,97 +855,139 @@ const Pet_owner = ({ roleType, userId }) => {
                   enableColumnOrdering
                   enableGrouping
                   enablePinning
-                  enableRowActions
+                  // enableRowActions
                   enableColumnResizing
                   initialState={{ density: 'compact' }}
                   positionToolbarAlertBanner="bottom"
                   enableRowSelection
-                  renderRowActionMenuItems={({ closeMenu, row }) => [
-                    <MenuItem
-                      key={0}
-                      onClick={async () => {
-                        closeMenu()
+                  // renderRowActionMenuItems={({ closeMenu, row }) => [
+                  //   <MenuItem
+                  //     key={0}
+                  //     onClick={async () => {
+                  //       closeMenu()
 
-                        const dogPoundsRef = ref(database, _table)
-                        const dogPoundSnapshot = await get(child(dogPoundsRef, row.original.id))
+                  //       const dogPoundsRef = ref(database, _table)
+                  //       const dogPoundSnapshot = await get(child(dogPoundsRef, row.original.id))
 
-                        if (dogPoundSnapshot.exists()) {
-                          // Dog Pound data found
-                          const dogPoundData = dogPoundSnapshot.val()
-                          setFormData({
-                            or_number: dogPoundData.or_number,
-                            date: dogPoundData.date,
-                            owner_name: dogPoundData.owner_name,
-                            pet_name: dogPoundData.pet_name,
-                            color: dogPoundData.color,
-                            sex: dogPoundData.sex,
-                            size: dogPoundData.size,
-                            address: dogPoundData.address,
-                          })
+                  //       if (dogPoundSnapshot.exists()) {
+                  //         // Dog Pound data found
+                  //         const dogPoundData = dogPoundSnapshot.val()
+                  //         setFormData({
+                  //           or_number: dogPoundData.or_number,
+                  //           date: dogPoundData.date,
+                  //           owner_name: dogPoundData.owner_name,
+                  //           pet_name: dogPoundData.pet_name,
+                  //           color: dogPoundData.color,
+                  //           sex: dogPoundData.sex,
+                  //           size: dogPoundData.size,
+                  //           address: dogPoundData.address,
+                  //         })
 
-                          setSelectedItemId(row.original.id) // Set the selected item ID
-                          setNewDataFormModalVisible(true)
-                          setEditMode(true)
-                        } else {
-                          // Pet owner data not found
-                          console.log('Pet owner not found')
-                        }
-                      }}
-                      sx={{ m: 0 }}
-                    >
-                      <ListItemIcon>
-                        <EditSharp />
-                      </ListItemIcon>
-                      Edit
-                    </MenuItem>,
-                    <MenuItem
-                      key={1}
-                      onClick={() => {
-                        closeMenu()
-                        Swal.fire({
-                          title: 'Are you sure?',
-                          text: "You won't be able to revert this!",
-                          icon: 'warning',
-                          showCancelButton: true,
-                          confirmButtonColor: '#3085d6',
-                          cancelButtonColor: '#d33',
-                          confirmButtonText: 'Yes, delete it!',
-                        }).then((result) => {
-                          let id = row.original.id
-                          let owner_name = row.original.owner_name
-                          let address = row.original.address
-                          let or_number = row.original.or_number
-                          let pet_name = row.original.pet_name
+                  //         setSelectedItemId(row.original.id) // Set the selected item ID
+                  //         setNewDataFormModalVisible(true)
+                  //         setEditMode(true)
+                  //       } else {
+                  //         // Pet owner data not found
+                  //         console.log('Pet owner not found')
+                  //       }
+                  //     }}
+                  //     sx={{ m: 0 }}
+                  //   >
+                  //     <ListItemIcon>
+                  //       <EditSharp />
+                  //     </ListItemIcon>
+                  //     Edit
+                  //   </MenuItem>,
+                  //   <MenuItem
+                  //     key={1}
+                  //     onClick={() => {
+                  //       closeMenu()
+                  //       Swal.fire({
+                  //         title: 'Are you sure?',
+                  //         text: "You won't be able to revert this!",
+                  //         icon: 'warning',
+                  //         showCancelButton: true,
+                  //         confirmButtonColor: '#3085d6',
+                  //         cancelButtonColor: '#d33',
+                  //         confirmButtonText: 'Yes, delete it!',
+                  //       }).then((result) => {
+                  //         let id = row.original.id
+                  //         let owner_name = row.original.owner_name
+                  //         let address = row.original.address
+                  //         let or_number = row.original.or_number
+                  //         let pet_name = row.original.pet_name
 
-                          TrackUserActivity({
-                            userId: userId,
-                            reference: 'Dog Pound',
-                            referenceTable: _table,
-                            activity: 'Deleted a record',
-                            value: {
-                              id: selectedItemId,
-                              owner: owner_name,
-                              or_number: or_number,
-                              address: address,
-                              pet_name: pet_name,
-                            },
-                          })
+                  //         TrackUserActivity({
+                  //           userId: userId,
+                  //           reference: 'Dog Pound',
+                  //           referenceTable: _table,
+                  //           activity: 'Deleted a record',
+                  //           value: {
+                  //             id: selectedItemId,
+                  //             owner: owner_name,
+                  //             or_number: or_number,
+                  //             address: address,
+                  //             pet_name: pet_name,
+                  //           },
+                  //         })
 
-                          if (result.isConfirmed) {
-                            const itemRef = ref(database, `${_table}/${row.original.id}`)
-                            remove(itemRef)
-                            Swal.fire('Deleted!', 'Data has been deleted.', 'success')
-                          }
-                        })
-                      }}
-                      sx={{ m: 0 }}
-                    >
-                      <ListItemIcon>
-                        <DeleteOutline />
-                      </ListItemIcon>
-                      Delete
-                    </MenuItem>,
-                  ]}
+                  //         if (result.isConfirmed) {
+                  //           const itemRef = ref(database, `${_table}/${row.original.id}`)
+                  //           remove(itemRef)
+                  //           Swal.fire('Deleted!', 'Data has been deleted.', 'success')
+                  //         }
+                  //       })
+                  //     }}
+                  //     sx={{ m: 0 }}
+                  //   >
+                  //     <ListItemIcon>
+                  //       <DeleteOutline />
+                  //     </ListItemIcon>
+                  //     Delete
+                  //   </MenuItem>,
+                  //   <MenuItem
+                  //     key={1}
+                  //     onClick={async () => {
+                  //       closeMenu()
+                  //       let dogId = row.original.id
+                  //       setFormAdoptData({
+                  //         ...formAdoptData,
+                  //         dogPoundId: dogId,
+                  //         date: '',
+                  //         owner_name: '',
+                  //         address: '',
+                  //         status: '',
+                  //       })
+                  //       setAdoptFormModalVisible(true)
+                  //     }}
+                  //     sx={{ m: 0 }}
+                  //   >
+                  //     <ListItemIcon>
+                  //       <Handshake />
+                  //     </ListItemIcon>
+                  //     Adopt/Claim
+                  //   </MenuItem>,
+                  //   <MenuItem
+                  //     key={1}
+                  //     onClick={() => {
+                  //       closeMenu()
+                  //       let dogId = row.original.id
+                  //       setFormDisposedData({
+                  //         ...formDisposedData,
+                  //         dogPoundId: dogId,
+                  //         date: '',
+                  //         medicine: '',
+                  //       })
+                  //       setDisposedFormModalVisible(true)
+                  //     }}
+                  //     sx={{ m: 0 }}
+                  //   >
+                  //     <ListItemIcon>
+                  //       <MedicationLiquid />
+                  //     </ListItemIcon>
+                  //     Disposed
+                  //   </MenuItem>,
+                  // ]}
                   renderTopToolbarCustomActions={({ table }) => (
                     <Box sx={{ display: 'flex', gap: '1rem', p: '0.5rem', flexWrap: 'wrap' }}>
                       <CButton size="md" className="btn-info text-white" onClick={handleExportData}>
@@ -1140,8 +1335,211 @@ const Pet_owner = ({ roleType, userId }) => {
           </CModalBody>
         </CModal>
       </Draggable>
+
+      {/* Adopt Form */}
+
+      <Draggable
+        handle=".modal-header"
+        position={modalPosition}
+        onStop={(e, data) => {
+          setModalPosition({ x: data.x, y: data.y })
+        }}
+      >
+        <CModal
+          alignment="center"
+          visible={adoptFormModalVisible}
+          onClose={() => setAdoptFormModalVisible(false)}
+          backdrop="static"
+          keyboard={false}
+          size="lg"
+        >
+          <CModalHeader>
+            <CModalTitle>Adopt/Claim</CModalTitle>
+          </CModalHeader>
+          <CModalBody>
+            <RequiredNote />
+            <CForm
+              className="row g-3 needs-validation"
+              noValidate
+              validated={validated}
+              onSubmit={handleAdoptClaimSubmit}
+            >
+              <CCol md={12}>
+                <CFormInput
+                  type="date"
+                  feedbackInvalid="Date is required"
+                  id="date"
+                  label={
+                    <>
+                      Date
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="date"
+                  value={formAdoptData.date}
+                  onChange={handleAdoptChange}
+                  required
+                />
+              </CCol>
+              <CCol md={12}>
+                <CFormInput
+                  type="text"
+                  feedbackInvalid="Name of the Owner is required"
+                  id="owner-name"
+                  label={
+                    <>
+                      Name of the Owner
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="owner_name"
+                  value={formAdoptData.owner_name}
+                  onChange={handleAdoptChange}
+                  required
+                />
+              </CCol>
+
+              <CCol md={12}>
+                <CFormSelect
+                  id="address"
+                  label={
+                    <>
+                      Address
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="address"
+                  value={formAdoptData.address}
+                  onChange={handleAdoptChange}
+                  required
+                  feedbackInvalid="Address is required"
+                >
+                  <option value="">Choose...</option>
+                  {barangayOptions.map((barangay) => (
+                    <option key={barangay.barangay} value={barangay.barangay}>
+                      {barangay.barangay}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+
+              <CCol md={12}>
+                <CFormSelect
+                  feedbackInvalid="Sex is required"
+                  id="status"
+                  label={
+                    <>
+                      Status
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Choose...</option>
+                  <option value="Adopt">Adopt</option>
+                  <option value="Claim">Claim</option>
+                </CFormSelect>
+              </CCol>
+              <hr />
+              <CCol xs={12}>
+                <CButton color="primary" type="submit" className="float-end">
+                  Generate
+                </CButton>
+              </CCol>
+            </CForm>
+          </CModalBody>
+        </CModal>
+      </Draggable>
+
+      {/* Disposed */}
+
+      <Draggable
+        handle=".modal-header"
+        position={modalPosition}
+        onStop={(e, data) => {
+          setModalPosition({ x: data.x, y: data.y })
+        }}
+      >
+        <CModal
+          alignment="center"
+          visible={disposedFormModalVisible}
+          onClose={() => setDisposedFormModalVisible(false)}
+          backdrop="static"
+          keyboard={false}
+          size="lg"
+        >
+          <CModalHeader>
+            <CModalTitle>Disposed Dog</CModalTitle>
+          </CModalHeader>
+          <CModalBody>
+            <RequiredNote />
+            <CForm
+              className="row g-3 needs-validation"
+              noValidate
+              validated={validated}
+              onSubmit={handleDisposedSubmit}
+            >
+              <CCol md={12}>
+                <CFormInput
+                  type="date"
+                  feedbackInvalid="Date is required"
+                  id="date"
+                  label={
+                    <>
+                      Date
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="date"
+                  value={formDisposedData.date}
+                  onChange={handleDisposedChange}
+                  required
+                />
+              </CCol>
+              <CCol md={12}>
+                <CFormInput
+                  type="text"
+                  feedbackInvalid="Name of the Medicine is required"
+                  id="medicine-name"
+                  label={
+                    <>
+                      Name of the Medicine
+                      <span className="text-warning">
+                        <strong>*</strong>
+                      </span>
+                    </>
+                  }
+                  name="medicine"
+                  value={formDisposedData.medicine}
+                  onChange={handleDisposedChange}
+                  required
+                />
+              </CCol>
+              <hr />
+              <CCol xs={12}>
+                <CButton color="primary" type="submit" className="float-end">
+                  Generate
+                </CButton>
+              </CCol>
+            </CForm>
+          </CModalBody>
+        </CModal>
+      </Draggable>
     </CRow>
   )
 }
 
-export default Pet_owner
+export default Disposed
