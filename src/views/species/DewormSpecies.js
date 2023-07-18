@@ -41,8 +41,6 @@ import ConvertToTitleCase from '../../helper/ConvertToTitleCase'
 
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
-
-import Table from 'src/constant/Table'
 import TrackUserActivity from 'src/helper/TrackUserActivity'
 import Draggable from 'react-draggable'
 import FormatDateTime from 'src/helper/FormatDateTime'

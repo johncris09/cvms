@@ -50,8 +50,6 @@ import ConvertToTitleCase from '../../../helper/ConvertToTitleCase'
 
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
-
-import Table from 'src/constant/Table'
 import TrackUserActivity from 'src/helper/TrackUserActivity'
 import CurrentYear from 'src/helper/CurrentYear'
 import FormatDate from 'src/helper/FormatDate'

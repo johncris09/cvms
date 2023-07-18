@@ -50,7 +50,6 @@ import {
   faQuestionCircle,
   faTimesCircle,
 } from '@fortawesome/free-solid-svg-icons'
-import Table from 'src/constant/Table'
 import ConvertToTitleCase from 'src/helper/ConvertToTitleCase'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
