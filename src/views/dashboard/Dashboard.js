@@ -531,40 +531,6 @@ const Dashboard = ({ roleType }) => {
       {status === 'Approved' ? (
         <CRow>
           <CCol md={12}>
-            <CAlert color="success" dismissible visible={visible} onClose={() => setVisible(false)}>
-              <CAlertHeading component="h4">Update!</CAlertHeading>
-              <p>
-                <ul>
-                  <li>
-                    <strong>Manage Dog Pound:</strong> This update allows you to effectively manage
-                    the dog pound. You can add, edit, and delete dog records, including important
-                    information such as owner details, pet names, colors, and more. It provides a
-                    comprehensive solution for organizing and maintaining records related to the dog
-                    pound.
-                  </li>
-                  <li>
-                    <strong>Manage Dog Adopt or Claim:</strong> With this update, you can streamline
-                    the process of dog adoption or claiming. It enables you to track and manage the
-                    adoption or claiming details, including dates, owner names, addresses, and the
-                    current status of the adoption process. It simplifies the administrative tasks
-                    associated with dog adoptions or claims.
-                  </li>
-                  <li>
-                    <strong>Manage Dog Disposal: </strong>This update facilitates the management of
-                    dog disposal. It helps you keep track of dogs that have been disposed of or
-                    euthanized, allowing you to maintain accurate records. You can record relevant
-                    details such as disposal dates and medicine used. It ensures proper
-                    documentation and compliance with disposal protocols.
-                  </li>
-                </ul>
-                These updates enhance the overall management of dog-related activities, providing a
-                comprehensive system for tracking dog pound data, adoption or claiming processes,
-                and disposal records.
-              </p>
-              <hr />
-            </CAlert>
-          </CCol>
-          <CCol md={12}>
             <CCard className="mb-4">
               <CCardBody>
                 <CRow>
